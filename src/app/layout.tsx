@@ -45,13 +45,13 @@ export default function RootLayout({
 </div>
 
           {/* Dark Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/70 to-slate-950" />
+          <div className="absolute inset-0 bg-linear-to-b from-slate-950/30 via-slate-950/70 to-slate-950" />
 
           {/* Indigo Glow */}
-          <div className="absolute -left-40 top-20 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[140px]" />
+          <div className="absolute -left-40 top-20 h-125 w-125 rounded-full bg-indigo-600/10 blur-[140px]" />
 
           {/* Purple Glow */}
-          <div className="absolute -right-40 top-[30%] h-[500px] w-[500px] rounded-full bg-purple-600/10 blur-[140px]" />
+          <div className="absolute -right-40 top-[30%] h-125 w-125 rounded-full bg-purple-600/10 blur-[140px]" />
         </div>
 
         {/* =====================================================
