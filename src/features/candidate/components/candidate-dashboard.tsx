@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { ResumeScoreCard } from "@/components/resume/resume-score-card";
-import { RecommendedJobs } from "@/components/jobs/recommended-jobs";
+import { RecommendedJobs } from "@/components/modules/jobs/recommended-jobs";
 //import { ApplicationsOverview } from "./applications-overview";
 
 function StatCard({

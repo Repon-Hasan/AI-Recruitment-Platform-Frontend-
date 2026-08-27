@@ -38,20 +38,20 @@ export default function RootLayout({
         {/* =====================================================
             GLOBAL ANIMATED BACKGROUND
         ====================================================== */}
-        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
           {/* Particle Wave */}
-     <div className="absolute inset-0 z-40 opacity-100">
-<ParticleWave />
-</div>
+          <div className="absolute inset-0 z-0 opacity-70">
+            <ParticleWave className="h-full w-full" />
+          </div>
 
           {/* Dark Gradient Overlay */}
-          <div className="absolute inset-0 bg-linear-to-b from-slate-950/30 via-slate-950/70 to-slate-950" />
+          <div className="absolute inset-0 z-10 bg-linear-to-b from-slate-950/35 via-slate-950/75 to-slate-950" />
 
           {/* Indigo Glow */}
-          <div className="absolute -left-40 top-20 h-125 w-125 rounded-full bg-indigo-600/10 blur-[140px]" />
+          <div className="absolute -left-40 top-20 z-10 h-125 w-125 rounded-full bg-indigo-600/10 blur-[140px]" />
 
           {/* Purple Glow */}
-          <div className="absolute -right-40 top-[30%] h-125 w-125 rounded-full bg-purple-600/10 blur-[140px]" />
+          <div className="absolute -right-40 top-[30%] z-10 h-125 w-125 rounded-full bg-purple-600/10 blur-[140px]" />
         </div>
 
         {/* =====================================================
@@ -62,7 +62,7 @@ export default function RootLayout({
           <Navbar />
 
           {/* Page Content */}
-          <main className="relative z-10">
+          <main className="relative z-20">
             {children}
           </main>
 

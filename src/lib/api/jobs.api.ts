@@ -25,29 +25,17 @@ export async function getJobs(
 ): Promise<JobsResponse> {
   const params = new URLSearchParams();
 
-  if (filters?.keyword) {
-    params.set("keyword", filters.keyword);
-  }
-
-  if (filters?.location) {
-    params.set("location", filters.location);
-  }
-
-  if (filters?.workMode) {
-    params.set("workMode", filters.workMode);
-  }
-
+  if (filters?.keyword) params.set("keyword", filters.keyword);
+  if (filters?.location) params.set("location", filters.location);
+  if (filters?.workMode) params.set("workMode", filters.workMode);
   if (filters?.employmentType) {
     params.set("employmentType", filters.employmentType);
   }
-
   if (filters?.experienceLevel) {
     params.set("experienceLevel", filters.experienceLevel);
   }
 
-  return apiClient<JobsResponse>(
-    `/jobs/search?${params.toString()}`,
-  );
+  return apiClient<JobsResponse>(`/jobs/search?${params.toString()}`);
 }
 
 export async function getJob(id: string) {
@@ -61,10 +49,7 @@ export async function createJob(payload: unknown) {
   });
 }
 
-export async function updateJob(
-  id: string,
-  payload: unknown,
-) {
+export async function updateJob(id: string, payload: unknown) {
   return apiClient<Job>(`/jobs/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
