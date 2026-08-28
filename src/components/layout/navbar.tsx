@@ -157,6 +157,12 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const isDashboardRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/recruiter") ||
+    pathname.startsWith("/candidate") ||
+    pathname.startsWith("/admin");
+
   const [user, setUser] = useState<UserData | null>(null);
 
   const [mobileOpen, setMobileOpen] =
@@ -278,6 +284,7 @@ export function Navbar() {
   ======================================================= */
 
   if (
+    isDashboardRoute ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/verify-email") ||
@@ -356,7 +363,7 @@ export function Navbar() {
   const dashboardHref = isAdmin
     ? "/dashboard/admin"
     : isRecruiter
-      ? "/dashboard/recruiter"
+      ? "/recruiter/dashboard"
       : "/dashboard/candidate";
 
   /* =======================================================

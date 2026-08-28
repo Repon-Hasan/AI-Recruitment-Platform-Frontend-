@@ -77,7 +77,7 @@ export const recruiterProtectedRoutes: RouteConfig = {
   exact: [],
 
   pattern: [
-    /^\/recruiter\/dashboard/,
+    /^\/(?:recruiter|dashboard\/recruiter)(?:\/|$)/,
   ],
 };
 

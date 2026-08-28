@@ -11,7 +11,8 @@ export const setCookie = async (
 
     cookieStore.set(name, value, {
         httpOnly : true,
-        secure : true,
+        // Local development runs over HTTP. Secure cookies are only sent over HTTPS.
+        secure : process.env.NODE_ENV === "production",
         sameSite : "strict",
         path : "/",
         maxAge : maxAgeInSeconds,

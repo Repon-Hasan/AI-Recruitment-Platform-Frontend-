@@ -13,8 +13,9 @@ export async function apiClient<T>(
   options: RequestOptions = {},
 ): Promise<T> {
   const { token, headers, ...rest } = options;
+  const url = `${API_URL}${endpoint}`;
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const response = await fetch(url, {
     ...rest,
     credentials: "include",
     headers: {
@@ -32,7 +33,7 @@ export async function apiClient<T>(
     const error = await response.json().catch(() => null);
 
     throw new Error(
-      error?.message || `Request failed with status ${response.status}`,
+      error?.message || `Request to ${url} failed with status ${response.status}`,
     );
   }
 

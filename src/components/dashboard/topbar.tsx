@@ -3,10 +3,12 @@
 import {
   Bell,
   ChevronDown,
+  Home,
   Menu,
   Search,
   Sparkles,
 } from "lucide-react";
+import { motion } from "motion/react";
 
 import {
   Avatar,
@@ -27,6 +29,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -78,6 +81,17 @@ export function Topbar({
       </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <motion.a
+          href="/"
+          whileHover={{ y: -2, scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          className="hidden items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex"
+        >
+          <Home className="h-4 w-4" />
+          <span>Home</span>
+        </motion.a>
+
         {/* Mobile Search */}
         <Button
           variant="ghost"
@@ -142,23 +156,25 @@ export function Topbar({
             align="end"
             className="w-56"
           >
-            <DropdownMenuLabel>
-              My Account
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                My Account
+              </DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
-              Profile
-            </DropdownMenuItem>
+              <DropdownMenuItem>
+                Profile
+              </DropdownMenuItem>
 
-            <DropdownMenuItem>
-              Settings
-            </DropdownMenuItem>
+              <DropdownMenuItem>
+                Settings
+              </DropdownMenuItem>
 
-            <DropdownMenuItem>
-              Billing
-            </DropdownMenuItem>
+              <DropdownMenuItem>
+                Billing
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 

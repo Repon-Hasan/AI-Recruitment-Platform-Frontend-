@@ -36,10 +36,18 @@ const ParticleWave: React.FC<ParticleWaveProps> = ({ className = "" }) => {
     // --------------------------------------------------
     // Renderer
     // --------------------------------------------------
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+    } catch (error) {
+      // WebGL can be unavailable in browsers, tests, or restricted devices.
+      // The page should continue rendering without the decorative background.
+      console.warn("ParticleWave disabled because WebGL is unavailable.", error);
+      return;
+    }
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 

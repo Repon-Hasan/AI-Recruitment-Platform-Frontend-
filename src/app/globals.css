@@ -128,3 +128,9 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .field-label { @apply mb-1.5 block text-sm font-medium; }
+  .field-label small { @apply font-normal text-muted-foreground; }
+  .control { @apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20; }
+}
