@@ -1,6 +1,5 @@
 import RegisterForm from "@/components/modules/authServices/RegisterForm";
 
-
 type RegisterPageProps = {
   searchParams: Promise<{
     redirect?: string;
@@ -12,7 +11,7 @@ export default async function RegisterPage({
 }: RegisterPageProps) {
   const params = await searchParams;
 
-  const redirectPath = params.redirect || "/dashboard";
+  const redirectPath = params.redirect;
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-slate-950">
@@ -32,8 +31,7 @@ export default async function RegisterPage({
         {/* Grid */}
         <div
           className="
-            absolute
-            inset-0
+            absolute inset-0
             opacity-[0.035]
             [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)]
             [background-size:50px_50px]

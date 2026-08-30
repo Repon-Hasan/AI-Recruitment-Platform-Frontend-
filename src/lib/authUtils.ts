@@ -230,7 +230,7 @@ export const getDefaultDashboardRoute = (
   }
 
   if (role === "CANDIDATE") {
-    return "/dashboard";
+    return "/candidate/dashboard";
   }
 
   return "/";

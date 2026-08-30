@@ -16,7 +16,7 @@ import ParticleWave from "../ui/particle-wave";
 export default function TestimonialsSection() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
-              <div className="absolute inset-0 z-7 opacity-10">
+              <div className="absolute inset-2 z-7 opacity-10">
             <ParticleWave />
             </div>
       <motion.div

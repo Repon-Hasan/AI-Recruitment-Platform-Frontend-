@@ -40,9 +40,9 @@ export default function RootLayout({
         ====================================================== */}
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
           {/* Particle Wave */}
-          <div className="absolute inset-0 z-0 opacity-70">
+          {/* <div className="absolute inset-0 z-0 opacity-70">
             <ParticleWave className="h-full w-full" />
-          </div>
+          </div> */}
 
           {/* Dark Gradient Overlay */}
           <div className="absolute inset-0 z-10 bg-linear-to-b from-slate-950/35 via-slate-950/75 to-slate-950" />

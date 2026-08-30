@@ -85,7 +85,7 @@ const candidateNavigation = [
   },
   {
     name: "Applications",
-    href: "/dashboard/applications",
+    href: "/applications",
     icon: BriefcaseBusiness,
   },
   {
@@ -364,7 +364,7 @@ export function Navbar() {
     ? "/dashboard/admin"
     : isRecruiter
       ? "/recruiter/dashboard"
-      : "/dashboard/candidate";
+      : "/candidate/dashboard";
 
   /* =======================================================
      INITIALS
