@@ -399,12 +399,404 @@ function JobForm({
 
 
 export function RecruiterJobs() {
-  const [jobs, setJobs] = useState<RecruiterJob[]>([]); const [editing, setEditing] = useState<string | null>(null); const [creating, setCreating] = useState(false); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [success, setSuccess] = useState(""); const [deleteTarget, setDeleteTarget] = useState<RecruiterJob | null>(null); const [deleting, setDeleting] = useState(false);
-  const load = () => recruiterApi.getJobs().then(setJobs).catch((e) => { setError(errorText(e)); return [] as RecruiterJob[]; }); useEffect(() => { load(); }, []);
-  const payload = (data: typeof emptyJob) => ({ title: data.title.trim(), description: data.description.trim(), location: data.location.trim() || undefined, remoteType: data.remoteType, employmentType: data.employmentType, experienceLevel: data.experienceLevel, salaryMin: data.salaryMin ? Number(data.salaryMin) : undefined, salaryMax: data.salaryMax ? Number(data.salaryMax) : undefined, salaryCurrency: data.salaryCurrency, deadline: new Date(`${data.deadline}T23:59:59`).toISOString(), requiredSkills: data.requiredSkills.split(",").map((name) => name.trim()).filter(Boolean), preferredSkills: [], status: data.status });
-  const save = async (data: typeof emptyJob) => { setSaving(true); setError(""); setSuccess(""); try { if (editing) { await recruiterApi.updateJob(editing, payload(data)); setSuccess("Job updated successfully."); toast.success("Job updated successfully"); } else { await recruiterApi.createJob(payload(data)); setSuccess("Job created successfully."); toast.success("Job created successfully", { description: "Your role is saved as a draft." }); } setEditing(null); setCreating(false); await load(); } catch (e) { const message = errorText(e); setError(message); toast.error("Could not save job", { description: message }); } finally { setSaving(false); } };
-  const action = async (fn: () => Promise<unknown>, message: string) => { setError(""); setSuccess(""); try { await fn(); setSuccess(message); toast.success(message); await load(); } catch (e) { const message = errorText(e); setError(message); toast.error("Job action failed", { description: message }); } };
-  return <motion.div variants={stagger} initial="hidden" animate="show"><Header eyebrow="Hiring pipeline" title="Your job posts" description="Create, publish, and tune every role from one place." action={<Button onClick={() => { setSuccess(""); setError(""); setCreating(true); }}><Plus className="mr-2 h-4 w-4"/>New job</Button>}/><AnimatePresence>{(error || success) && <motion.div initial={{ opacity: 0, y: -12, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8 }} role="alert" className={`mb-4 flex items-center gap-3 rounded-xl border p-4 text-sm font-medium shadow-sm ${error ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>{error ? <X className="h-5 w-5"/> : <Check className="h-5 w-5"/>}<span>{error || success}</span></motion.div>}</AnimatePresence>{(creating || editing) && <Card className="mb-6 border-primary/30"><CardHeader><CardTitle>{editing ? "Edit job" : "Create a job post"}</CardTitle><CardDescription>Clear details help the matching engine find better candidates.</CardDescription></CardHeader><CardContent><JobForm initial={editing ? (() => { const j = jobs.find((x) => x.id === editing); return {...emptyJob, title:j?.title || "", description:j?.description || "", location:j?.location || "", remoteType:j?.remoteType || "ONSITE", employmentType:j?.employmentType || "FULL_TIME", experienceLevel:j?.experienceLevel || "MID", salaryMin:j?.salaryMin?.toString() || "", salaryMax:j?.salaryMax?.toString() || "", salaryCurrency:j?.salaryCurrency || "BDT", requiredSkills:j?.requiredSkills?.map((s) => s.name).join(", ") || "", deadline:j?.deadline?.slice(0,10) || ""}; })() : emptyJob} onSave={save} onCancel={() => {setCreating(false); setEditing(null)}} saving={saving}/></CardContent></Card>}<div className="grid gap-4">{jobs.map((job) => <motion.div variants={item} key={job.id}><Card><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><h2 className="font-semibold">{job.title}</h2><span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold">{job.status || "DRAFT"}</span></div><p className="text-sm text-muted-foreground">{job.location || "Remote friendly"} · {job.remoteType || "ONSITE"} · {job._count?.jobApplications || 0} applicants</p><div className="mt-3 flex flex-wrap gap-1.5">{job.requiredSkills?.slice(0, 5).map((s) => <span key={s.id || s.name} className="rounded-md bg-primary/8 px-2 py-1 text-xs text-primary">{s.name}</span>)}</div></div><div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setEditing(job.id)}>Edit</Button>{job.status === "PUBLISHED" ? <Button size="sm" variant="outline" onClick={() => action(() => recruiterApi.closeJob(job.id), "Job closed successfully.")}><X className="mr-1 h-3 w-3"/>Close</Button> : <Button size="sm" onClick={() => action(() => recruiterApi.publishJob(job.id), "Job published successfully.")}><Check className="mr-1 h-3 w-3"/>Publish</Button>}<Button size="icon-sm" variant="ghost" onClick={() => action(() => recruiterApi.duplicateJob(job.id), "Job duplicated successfully.")}><Copy/></Button><Button size="icon-sm" variant="destructive" onClick={() => setDeleteTarget(job)}><Trash2/></Button></div></CardContent></Card></motion.div>)}</div><AnimatePresence>{deleteTarget && <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><motion.div initial={{ opacity: 0, y: 18, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .96 }} className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-red-500/10 text-red-600"><AlertTriangle className="h-5 w-5"/></div><h2 className="text-lg font-semibold">Delete “{deleteTarget.title}”?</h2><p className="mt-2 text-sm text-muted-foreground">This permanently removes the role and its associated data. This action cannot be undone.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" disabled={deleting} onClick={() => setDeleteTarget(null)}>Cancel</Button><Button variant="destructive" disabled={deleting} onClick={async () => { setDeleting(true); try { await recruiterApi.deleteJob(deleteTarget.id); setDeleteTarget(null); setSuccess("Job deleted successfully."); toast.success("Job deleted successfully"); await load(); } catch (e) { const message = errorText(e); setError(message); toast.error("Could not delete job", { description: message }); } finally { setDeleting(false); } }}>{deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}{deleting ? "Deleting…" : "Delete job"}</Button></div></motion.div></motion.div>}</AnimatePresence></motion.div>;
+  const [jobs, setJobs] = useState<RecruiterJob[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<RecruiterJob | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const load = () =>
+    recruiterApi
+      .getJobs()
+      .then(setJobs)
+      .catch((e) => {
+        setError(errorText(e));
+        return [] as RecruiterJob[];
+      });
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const payload = (data: typeof emptyJob) => ({
+    title: data.title.trim(),
+    description: data.description.trim(),
+    location: data.location.trim() || undefined,
+    remoteType: data.remoteType,
+    employmentType: data.employmentType,
+    experienceLevel: data.experienceLevel,
+    salaryMin: data.salaryMin ? Number(data.salaryMin) : undefined,
+    salaryMax: data.salaryMax ? Number(data.salaryMax) : undefined,
+    salaryCurrency: data.salaryCurrency,
+    deadline: new Date(`${data.deadline}T23:59:59`).toISOString(),
+    requiredSkills: data.requiredSkills
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean),
+    preferredSkills: [],
+    status: data.status,
+  });
+
+  const save = async (data: typeof emptyJob) => {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      if (editing) {
+        await recruiterApi.updateJob(editing, payload(data));
+        setSuccess("Job updated successfully.");
+        toast.success("Job updated successfully");
+      } else {
+        await recruiterApi.createJob(payload(data));
+        setSuccess("Job created successfully.");
+        toast.success("Job created successfully", {
+          description: "Your role is saved as a draft.",
+        });
+      }
+
+      setEditing(null);
+      setCreating(false);
+      await load();
+    } catch (e) {
+      const message = errorText(e);
+      setError(message);
+      toast.error("Could not save job", { description: message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const action = async (fn: () => Promise<unknown>, message: string) => {
+    setError("");
+    setSuccess("");
+
+    try {
+      await fn();
+      setSuccess(message);
+      toast.success(message);
+      await load();
+    } catch (e) {
+      const message = errorText(e);
+      setError(message);
+      toast.error("Job action failed", { description: message });
+    }
+  };
+
+  const statusClassMap: Record<string, string> = {
+    DRAFT: "bg-slate-900/5 text-slate-700 ring-1 ring-slate-200",
+    PUBLISHED: "bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-200",
+    CLOSED: "bg-amber-500/10 text-amber-700 ring-1 ring-amber-200",
+  };
+
+  return (
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      animate="show"
+      className="space-y-6"
+    >
+      <div className="overflow-hidden rounded-[28px] border border-border/80 bg-[radial-gradient(circle_at_top_left,_rgba(120,119,198,0.18),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(245,247,255,0.96))] p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.38)] sm:p-6">
+
+      <Button
+  asChild
+  variant="outline"
+  className="group border-slate-200 bg-white px-5 py-2.5 font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow-md"
+>
+  <a href="/recruiter/dashboard">
+    <Plus className="mr-2 h-4 w-4 rotate-45 transition-transform duration-200 group-hover:rotate-0" />
+    Back to Dashboard
+  </a>
+</Button>
+
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/80">
+              Hiring pipeline
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              Your job posts
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+              Create, publish, and tune every role from one calm, high-conviction workspace.
+            </p>
+          </div>
+                   
+
+          <Button
+            onClick={() => {
+              setSuccess("");
+              setError("");
+              setCreating(true);
+            }}
+            className="h-11 rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-900"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New job
+          </Button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {(error || success) && (
+          <motion.div
+            initial={{ opacity: 0, y: -12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            role="alert"
+            className={`flex items-center gap-3 rounded-2xl border p-4 text-sm font-medium shadow-sm ${
+              error
+                ? "border-red-200 bg-red-50/90 text-red-700"
+                : "border-emerald-200 bg-emerald-50/90 text-emerald-700"
+            }`}
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80">
+              {error ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+            </div>
+            <span>{error || success}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {(creating || editing) && (
+          <motion.div
+            key={editing ?? "create-job"}
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card className="mb-6 overflow-hidden border border-primary/20 bg-[linear-gradient(135deg,rgba(99,102,241,0.06),rgba(255,255,255,0.98),rgba(236,242,255,0.88))] shadow-[0_24px_80px_-40px_rgba(79,70,229,0.6)]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-2xl">
+                  {editing ? "Edit job" : "Create a job post"}
+                </CardTitle>
+                <CardDescription className="text-sm text-slate-600">
+                  Clear details help the matching engine find better candidates.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <JobForm
+                  initial={
+                    editing
+                      ? (() => {
+                          const j = jobs.find((x) => x.id === editing);
+                          return {
+                            ...emptyJob,
+                            title: j?.title || "",
+                            description: j?.description || "",
+                            location: j?.location || "",
+                            remoteType: j?.remoteType || "ONSITE",
+                            employmentType: j?.employmentType || "FULL_TIME",
+                            experienceLevel: j?.experienceLevel || "MID",
+                            salaryMin: j?.salaryMin?.toString() || "",
+                            salaryMax: j?.salaryMax?.toString() || "",
+                            salaryCurrency: j?.salaryCurrency || "BDT",
+                            requiredSkills: j?.requiredSkills?.map((s) => s.name).join(", ") || "",
+                            deadline: j?.deadline?.slice(0, 10) || "",
+                          };
+                        })()
+                      : emptyJob
+                  }
+                  onSave={save}
+                  onCancel={() => {
+                    setCreating(false);
+                    setEditing(null);
+                  }}
+                  saving={saving}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid gap-4">
+        {jobs.length ? (
+          jobs.map((job) => (
+            <motion.div
+              key={job.id}
+              variants={item}
+              whileHover={{ y: -4, scale: 1.005 }}
+              transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            >
+              <Card className="overflow-hidden border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] shadow-[0_18px_55px_-34px_rgba(15,23,42,0.38)]">
+                <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+                        {job.title}
+                      </h2>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                          statusClassMap[job.status || "DRAFT"] || statusClassMap.DRAFT
+                        }`}
+                      >
+                        {job.status || "DRAFT"}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                      <span>{job.location || "Remote friendly"}</span>
+                      <span className="text-slate-300">•</span>
+                      <span>{job.remoteType || "ONSITE"}</span>
+                      <span className="text-slate-300">•</span>
+                      <span>{job._count?.jobApplications || 0} applicants</span>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {(job.requiredSkills || []).slice(0, 5).map((s) => (
+                        <span
+                          key={s.id || s.name}
+                          className="rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary"
+                        >
+                          {s.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50"
+                      onClick={() => setEditing(job.id)}
+                    >
+                      Edit
+                    </Button>
+
+                    {job.status === "PUBLISHED" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                        onClick={() => action(() => recruiterApi.closeJob(job.id), "Job closed successfully.")}
+                      >
+                        <X className="mr-1 h-3 w-3" />
+                        Close
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-500/20 hover:bg-emerald-500"
+                        onClick={() => action(() => recruiterApi.publishJob(job.id), "Job published successfully.")}
+                      >
+                        <Check className="mr-1 h-3 w-3" />
+                        Publish
+                      </Button>
+                    )}
+
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      onClick={() => action(() => recruiterApi.duplicateJob(job.id), "Job duplicated successfully.")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="icon-sm"
+                      variant="destructive"
+                      className="h-9 w-9 rounded-xl"
+                      onClick={() => setDeleteTarget(job)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))
+        ) : (
+          <motion.div
+            variants={item}
+            className="rounded-[28px] border border-dashed border-slate-300 bg-[linear-gradient(135deg,rgba(248,250,252,0.92),rgba(255,255,255,0.96))] p-12 text-center shadow-[0_18px_60px_-40px_rgba(15,23,42,0.3)]"
+          >
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <BriefcaseBusiness className="h-7 w-7" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900">No roles yet</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Start with a role brief and turn it into a strong candidate pipeline.
+            </p>
+          </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_30px_100px_-30px_rgba(15,23,42,0.7)]"
+            >
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+                Delete “{deleteTarget.title}”?
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                This permanently removes the role and its associated data. This action cannot be undone.
+              </p>
+
+              <div className="mt-6 flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  disabled={deleting}
+                  className="rounded-xl"
+                  onClick={() => setDeleteTarget(null)}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  disabled={deleting}
+                  className="rounded-xl"
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      await recruiterApi.deleteJob(deleteTarget.id);
+                      setDeleteTarget(null);
+                      setSuccess("Job deleted successfully.");
+                      toast.success("Job deleted successfully");
+                      await load();
+                    } catch (e) {
+                      const message = errorText(e);
+                      setError(message);
+                      toast.error("Could not delete job", { description: message });
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {deleting ? "Deleting…" : "Delete job"}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 }
 
 export function RecruiterApplications() {

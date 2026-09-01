@@ -141,12 +141,12 @@ export default function JobsPage() {
    *
    * Otherwise use normal candidate jobs.
    */
-  const jobs = useMemo(() => {
+  const jobs = useMemo<Job[]>(() => {
     if (debouncedSearch) {
-      return searchedJobs || [];
+      return searchedJobs ?? [];
     }
 
-    return initialJobs || [];
+    return initialJobs ?? [];
   }, [
     debouncedSearch,
     searchedJobs,
@@ -158,12 +158,11 @@ export default function JobsPage() {
    * Employment filtering is still
    * handled on the frontend.
    */
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
+  const filteredJobs = useMemo<Job[]>(() => {
+    return jobs.filter((job: Job) => {
       const matchesEmployment =
         employment === "ALL" ||
-        job.employmentType ===
-          employment;
+        job.employmentType === employment;
 
       return matchesEmployment;
     });
@@ -631,7 +630,7 @@ export default function JobsPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
                 {filteredJobs.map(
-                  (job, index) => (
+                  (job: Job, index: number) => (
                     <JobCard
                       key={job.id}
                       job={job}

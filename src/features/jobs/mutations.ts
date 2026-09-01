@@ -36,7 +36,7 @@ export function useUpdateJob() {
       payload,
     }: {
       id: string;
-      payload: unknown;
+      payload: Partial<Parameters<typeof updateJob>[1]>;
     }) => updateJob(id, payload),
 
     onSuccess: (_, variables) => {

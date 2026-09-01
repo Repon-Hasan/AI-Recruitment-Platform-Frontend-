@@ -1,23 +1,21 @@
 "use client";
 
-import { applyToJob, getJob, getJobMatch, getJobs, getMatchSummary, getSkillGap, searchJobs } from "@/lib/api/jobs.api";
-import { ApiResponse } from "@/types/api.types";
+import { applyToJob, getJob, getJobMatch, getJobs, getMatchSummary, getSkillGap, searchJobs, type JobFilters } from "@/lib/api/jobs.api";
+import type { Job } from "@/types/job";
 import {
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
 
-
-
-export function useJobs() {
-  return useQuery({
-    queryKey: ["jobs"],
-    queryFn: getJobs,
+export function useJobs(filters?: JobFilters) {
+  return useQuery<Job[], Error>({
+    queryKey: ["jobs", filters ?? null],
+    queryFn: () => getJobs(filters),
   });
 }
 
 export function useJob(jobId: string) {
-  return useQuery({
+  return useQuery<Job, Error>({
     queryKey: ["job", jobId],
     queryFn: () => getJob(jobId),
     enabled: Boolean(jobId),
@@ -29,7 +27,7 @@ export function useSearchJobs(
 ) {
   const normalizedKeyword = keyword.trim();
 
-  return useQuery({
+  return useQuery<Job[], Error>({
     queryKey: [
       "candidate-jobs-search",
       normalizedKeyword,
