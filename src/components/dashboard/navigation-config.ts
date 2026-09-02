@@ -77,12 +77,6 @@ export const navigation: Record<UserRole, NavigationGroup[]> = {
           icon: Video,
           badge: "AI",
         },
-        {
-          label: "Skill Gap",
-          href: "/candidate/skill-gap",
-          icon: Sparkles,
-          badge: "AI",
-        },
       ],
     },
 
@@ -156,8 +150,8 @@ export const navigation: Record<UserRole, NavigationGroup[]> = {
           badge: "AI",
         },
         {
-          label: "Skill Gap",
-          href: "/recruiter/skill-gap",
+          label: "Rank Candidates",
+          href: "/recruiter/rank-candidates",
           icon: Sparkles,
           badge: "AI",
         },

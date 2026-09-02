@@ -500,7 +500,7 @@ export function RecruiterJobs() {
       className="space-y-6"
     >
       <div className="overflow-hidden rounded-[28px] border border-border/80 bg-[radial-gradient(circle_at_top_left,_rgba(120,119,198,0.18),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(245,247,255,0.96))] p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.38)] sm:p-6">
-
+         
       <Button
   asChild
   variant="outline"
@@ -660,9 +660,18 @@ export function RecruiterJobs() {
                       ))}
                     </div>
                   </div>
-
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50"
+                      onClick={() => setEditing(job.id)}
+                    >
+                      <a href={`/recruiter/jobs/${job.id}/rank-candidates`}>Rank-candidate</a>
+                    </Button>
+
+                     <Button
                       size="sm"
                       variant="outline"
                       className="rounded-xl border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50"
@@ -799,12 +808,909 @@ export function RecruiterJobs() {
   );
 }
 
+const statusTone: Record<string, string> = {
+  PENDING: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+  REVIEWING: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
+  SHORTLISTED: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
+  REJECTED: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
+  ACCEPTED: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  APPLIED: "bg-sky-100 text-sky-700 ring-1 ring-sky-200",
+  SCREENING: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  INTERVIEW: "bg-cyan-100 text-cyan-700 ring-1 ring-cyan-200",
+  OFFER: "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200",
+  HIRED: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  WITHDRAWN: "bg-gray-100 text-gray-700 ring-1 ring-gray-200",
+};
+
+const renderAssistantText = (text: string) => {
+  const blocks = text.split(/\n\s*\n/).filter(Boolean);
+
+  return blocks.map((block, index) => {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+
+    if (!lines.length) return null;
+
+    if (lines.every((line) => line.startsWith("* ") || line.startsWith("- "))) {
+      return (
+        <ul key={`block-${index}`} className="space-y-2 pl-5 text-sm leading-6 text-slate-100">
+          {lines.map((line, lineIndex) => (
+            <li key={`${index}-${lineIndex}`} className="list-disc marker:text-indigo-300">
+              {line.replace(/^[-*]\s*/, "")}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    if (lines.some((line) => line.startsWith("### "))) {
+      return (
+        <div key={`block-${index}`} className="space-y-2">
+          {lines.map((line, lineIndex) => {
+            if (line.startsWith("### ")) {
+              return (
+                <h4 key={`${index}-${lineIndex}`} className="mt-3 text-sm font-semibold uppercase tracking-[0.14em] text-indigo-200">
+                  {line.replace(/^###\s*/, "")}
+                </h4>
+              );
+            }
+
+            if (line.startsWith("* ") || line.startsWith("- ")) {
+              return (
+                <p key={`${index}-${lineIndex}`} className="text-sm leading-6 text-slate-100">
+                  {line.replace(/^[-*]\s*/, "")}
+                </p>
+              );
+            }
+
+            return (
+              <p key={`${index}-${lineIndex}`} className="text-sm leading-6 text-slate-100">
+                {line}
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <p key={`block-${index}`} className="text-sm leading-6 text-slate-100">
+        {block}
+      </p>
+    );
+  });
+};
+
 export function RecruiterApplications() {
-  const [apps, setApps] = useState<Application[]>([]); const [query, setQuery] = useState(""); const [answer, setAnswer] = useState<unknown>(null); const [asking, setAsking] = useState(false); const [error, setError] = useState("");
-  const load = () => recruiterApi.getApplications().then(setApps).catch((e) => setError(errorText(e))); useEffect(() => { load(); }, []);
-  const filtered = useMemo(() => apps.filter((a) => `${a.candidateProfile?.user?.name} ${a.job?.title}`.toLowerCase().includes(query.toLowerCase())), [apps, query]);
-  const ask = async () => { if (!query.trim()) return; setAsking(true); setError(""); try { setAnswer(await recruiterApi.assistant({ query, limit: 8 })); } catch (e) { setError(errorText(e)); } finally { setAsking(false); } };
-  return <motion.div variants={stagger} initial="hidden" animate="show"><Header eyebrow="Find talent" title="Applicants, in focus." description="Review your complete pipeline, move candidates forward, and ask AI for a second opinion."/><div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]"><Card><CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle>All applicants</CardTitle><CardDescription>{apps.length} candidates across your roles</CardDescription></div><Input className="sm:max-w-xs" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search candidates…"/></div></CardHeader><CardContent><div className="space-y-2">{filtered.map((application) => <div key={application.id} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{application.candidateProfile?.user?.name || "Candidate"}</p><p className="text-sm text-muted-foreground">{application.candidateProfile?.headline || application.job?.title || "Application"}</p><p className="mt-1 text-xs text-muted-foreground">{application.candidateProfile?.user?.email || ""}</p></div><select className="control h-9 w-full sm:w-36" value={application.status || "PENDING"} onChange={async (e) => { try { await recruiterApi.updateApplication(application.id, e.target.value); await load(); } catch (err) { setError(errorText(err)); } }}><option>PENDING</option><option>REVIEWING</option><option>SHORTLISTED</option><option>REJECTED</option><option>ACCEPTED</option></select></div>)}{!filtered.length && <p className="py-10 text-center text-sm text-muted-foreground">No applicants match this search.</p>}</div></CardContent></Card><Card className="h-fit border-primary/20 bg-linear-to-br from-primary/10 to-card"><CardHeader><div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Sparkles className="h-5 w-5"/></div><CardTitle>Ask your AI recruiter</CardTitle><CardDescription>Try “Who has the strongest React experience?”</CardDescription></CardHeader><CardContent><div className="space-y-3"><textarea className="control min-h-28" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask about your talent pool…"/><Button className="w-full" onClick={ask} disabled={asking || !query.trim()}>{asking && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}{asking ? "Thinking…" : "Analyze applicants"}</Button>{answer !== null && <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-xl bg-background/80 p-4 text-xs leading-5">{typeof answer === "string" ? answer : JSON.stringify(answer, null, 2)}</pre>}</div></CardContent></Card></div>{error && <p className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}</motion.div>;
+  const [apps, setApps] = useState<Application[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [answer, setAnswer] = useState<unknown>(null);
+  const [asking, setAsking] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedCandidate, setSelectedCandidate] = useState<Application | null>(null);
+
+  const load = () =>
+    recruiterApi
+      .getApplications()
+      .then(setApps)
+      .catch((e) => setError(errorText(e)));
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return apps;
+
+    return apps.filter((application) => {
+      const candidateName = application.candidateProfile?.user?.name || "";
+      const jobTitle = application.job?.title || "";
+      const email = application.candidateProfile?.user?.email || "";
+      const headline = application.candidateProfile?.headline || "";
+      const status = application.status || "";
+
+      return [candidateName, jobTitle, email, headline, status]
+        .join(" ")
+        .toLowerCase()
+        .includes(term);
+    });
+  }, [apps, searchTerm]);
+
+  const ask = async () => {
+    const trimmed = aiPrompt.trim();
+    if (!trimmed) return;
+
+    setAsking(true);
+    setError("");
+
+    try {
+      const result = await recruiterApi.assistant({ query: trimmed, limit: 8 });
+      setAnswer(result);
+    } catch (e) {
+      setError(errorText(e));
+      setAnswer(null);
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  const assistantData = useMemo(() => {
+    if (!answer || typeof answer !== "object") {
+      return null;
+    }
+
+    const result = answer as Record<string, unknown>;
+    const job = result.job && typeof result.job === "object" ? (result.job as Record<string, unknown>) : null;
+    const candidates = Array.isArray(result.candidates) ? (result.candidates as Array<Record<string, unknown>>) : [];
+    const answerText = typeof result.answer === "string" ? result.answer : "";
+
+    return { job, candidates, answerText };
+  }, [answer]);
+
+  return (
+    <>
+      <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
+        <div className="overflow-hidden rounded-[30px] border border-indigo-200/70 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.24),transparent_28%),linear-gradient(135deg,#eef2ff_0%,#f8fafc_35%,#ffffff_100%)] p-5 shadow-[0_25px_80px_-35px_rgba(99,102,241,0.45)] sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-indigo-600">Find talent</p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Applicants, in focus.</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+                Review your complete pipeline, move candidates forward, and ask AI for a second opinion.
+              </p>
+            </div>
+
+            <Button asChild variant="outline" className="group h-11 rounded-xl border-slate-200 bg-white/90 px-4 font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900">
+              <a href="/recruiter/dashboard">
+                <ArrowUpRight className="mr-2 h-4 w-4 rotate-45 transition-transform duration-200 group-hover:rotate-0" />
+                Back to dashboard
+              </a>
+            </Button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 shadow-sm"
+              role="alert"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+          <motion.div variants={item}>
+            <Card className="overflow-hidden border border-slate-200 bg-white/95 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.35)]">
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <CardTitle className="text-2xl text-slate-900">All applicants</CardTitle>
+                    <CardDescription className="mt-1 text-slate-600">
+                      {apps.length} candidates across your roles
+                    </CardDescription>
+                  </div>
+
+                  <div className="w-full lg:max-w-sm">
+                    <label className="block">
+                      <span className="sr-only">Search applicants</span>
+                      <Input
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by name, role, email, or status"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-inner focus-visible:ring-indigo-500"
+                      />
+                    </label>
+                    <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Search helps</p>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  {filtered.length ? (
+                    filtered.map((application) => {
+                      const name = application.candidateProfile?.user?.name || "Candidate";
+                      const initials = name
+                        .split(" ")
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((part) => part[0]?.toUpperCase() || "C")
+                        .join("") || "C";
+
+                      const status = application.status || "PENDING";
+                      const candidateId = application.candidateProfile?.id || application.id;
+
+                      return (
+                        <motion.div
+                          key={application.id}
+                          variants={item}
+                          className="rounded-2xl border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,0.96))] p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)]"
+                        >
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-md shadow-indigo-500/25">
+                                {initials}
+                              </div>
+
+                              <div className="min-w-0">
+                                <p className="text-base font-semibold text-slate-900">{name}</p>
+                                <p className="text-sm text-slate-600">{application.candidateProfile?.headline || application.job?.title || "Application in progress"}</p>
+                                <p className="mt-1 text-xs text-slate-500">{application.candidateProfile?.user?.email || "No email provided"}</p>
+                              </div>
+                            </div>
+
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${statusTone[status] || statusTone.PENDING}`}>
+                              {status}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Applied role</p>
+                              <p className="mt-2 text-sm font-medium text-slate-800">{application.job?.title || "Role not available"}</p>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Location</p>
+                              <p className="mt-2 text-sm font-medium text-slate-800">
+                                {application.candidateProfile?.location || "Location not shared"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-1">
+                              <p className="text-xs text-slate-500">
+                                Applied {application.createdAt ? new Date(application.createdAt).toLocaleDateString("en-BD", { month: "short", day: "numeric", year: "numeric" }) : "recently"}
+                              </p>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-600">Candidate ID: {candidateId}</p>
+                            </div>
+
+                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                                onClick={() => setSelectedCandidate(application)}
+                              >
+                                View profile
+                              </Button>
+
+                              <select
+                                className="h-9 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 sm:w-40"
+                                value={status}
+                                onChange={async (e) => {
+                                  try {
+                                    await recruiterApi.updateApplication(application.id, e.target.value);
+                                    await load();
+                                  } catch (err) {
+                                    setError(errorText(err));
+                                  }
+                                }}
+                              >
+                                <option value="PENDING">PENDING</option>
+                                <option value="REVIEWING">REVIEWING</option>
+                                <option value="SHORTLISTED">SHORTLISTED</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="ACCEPTED">ACCEPTED</option>
+                              </select>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <motion.div
+                      variants={item}
+                      className="rounded-[28px] border border-dashed border-slate-300 bg-[linear-gradient(135deg,rgba(248,250,252,0.96),rgba(255,255,255,0.96))] p-12 text-center shadow-[0_20px_60px_-40px_rgba(15,23,42,0.28)]"
+                    >
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-slate-900">No applicants match this search</h3>
+                      <p className="mt-2 text-sm text-slate-600">Try a candidate name, job title, email, or status keyword.</p>
+                    </motion.div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Card className="h-fit overflow-hidden border border-indigo-200 bg-[linear-gradient(135deg,rgba(99,102,241,0.12),rgba(255,255,255,1),rgba(239,246,255,0.9))] shadow-[0_28px_90px_-40px_rgba(79,70,229,0.55)]">
+              <CardHeader className="pb-3">
+                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-500/25">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-2xl text-slate-900">AI recruiting copilot</CardTitle>
+                <CardDescription className="text-slate-600">
+                  Ask about talent fit, compare candidates, or shortlist based on role requirements.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <textarea
+                  className="min-h-28 w-full rounded-2xl border border-indigo-200 bg-white/90 p-3 text-sm text-slate-700 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-3 focus:ring-indigo-100"
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="Ask: Who has the strongest React experience? or Search for backend candidates."
+                />
+
+                <Button className="w-full rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500" onClick={ask} disabled={asking || !aiPrompt.trim()}>
+                  {asking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {asking ? "Thinking…" : "Analyze applicants"}
+                </Button>
+
+                {answer !== null && (
+                  <div className="overflow-hidden rounded-2xl border border-indigo-200 bg-slate-950 p-4 text-slate-50 shadow-inner shadow-indigo-950/30">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-indigo-200">
+                        <Bot className="h-4 w-4" />
+                        AI assessment
+                      </div>
+
+                      {assistantData?.job && (
+                        <span className="rounded-full border border-indigo-400/40 bg-indigo-500/10 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-200">
+                          {String(assistantData.job.title || "Role")}
+                        </span>
+                      )}
+                    </div>
+
+                    {assistantData?.candidates?.length ? (
+                      <div className="space-y-3">
+                        {assistantData.candidates.map((candidate, index) => {
+                          const candidateName = typeof candidate.name === "string" ? candidate.name : "Candidate";
+                          const scoreValue = typeof candidate.score === "number" ? candidate.score : null;
+                          const breakdown = candidate.breakdown && typeof candidate.breakdown === "object" ? (candidate.breakdown as Record<string, unknown>) : {};
+
+                          return (
+                            <div key={`${candidateName}-${index}`} className="rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="font-medium text-slate-50">{candidateName}</p>
+                                <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300">
+                                  {scoreValue !== null ? `${scoreValue.toFixed(2)}%` : "No score"}
+                                </span>
+                              </div>
+
+                              {Object.keys(breakdown).length > 0 && (
+                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                  {Object.entries(breakdown).map(([key, value]) => (
+                                    <div key={key} className="rounded-lg border border-white/10 bg-slate-900/40 p-2">
+                                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                                        {key.replace(/([A-Z])/g, " $1").trim()}
+                                      </p>
+                                      <p className="mt-1 text-sm text-slate-100">
+                                        {typeof value === "number" ? `${value.toFixed(2)}%` : String(value)}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+
+                    {assistantData?.answerText ? (
+                      <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
+                        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-200">Candidate summary</p>
+                        <div className="space-y-3">{renderAssistantText(assistantData.answerText)}</div>
+                      </div>
+                    ) : typeof answer === "string" ? (
+                      <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-100 whitespace-pre-wrap">
+                        {answer}
+                      </div>
+                    ) : (
+                      <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-white/5 p-4 text-xs leading-5 text-slate-100">
+                        {JSON.stringify(answer, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {selectedCandidate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+            onClick={() => setSelectedCandidate(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 28, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 18, scale: 0.96 }}
+              transition={{ duration: 0.24, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_120px_-35px_rgba(15,23,42,0.8)]"
+            >
+              <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#eef2ff_0%,#ffffff_50%,#f8fafc_100%)] p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-600 to-violet-500 text-lg font-bold text-white shadow-lg shadow-indigo-500/25">
+                      {selectedCandidate.candidateProfile?.user?.name?.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || "C").join("") || "C"}
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-indigo-600">Candidate profile</p>
+                      <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                        {selectedCandidate.candidateProfile?.user?.name || "Candidate"}
+                      </h2>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {selectedCandidate.candidateProfile?.headline || selectedCandidate.job?.title || "Application profile"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    onClick={() => setSelectedCandidate(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+
+              <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-5 sm:p-6">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Email</p>
+                    <p className="mt-2 text-sm font-medium text-slate-800">{selectedCandidate.candidateProfile?.user?.email || "Not shared"}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Phone</p>
+                    <p className="mt-2 text-sm font-medium text-slate-800">{selectedCandidate.candidateProfile?.phone || "Not shared"}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Candidate ID</p>
+                    <p className="mt-2 truncate text-sm font-medium text-slate-800">{selectedCandidate.candidateProfile?.id || selectedCandidate.id}</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="space-y-6">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-900">Professional summary</h3>
+                        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
+                          {selectedCandidate.job?.title || "Role"}
+                        </span>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Location</p>
+                          <p className="mt-2 text-sm text-slate-800">{selectedCandidate.candidateProfile?.location || "Not shared"}</p>
+                        </div>
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Experience</p>
+                          <p className="mt-2 text-sm text-slate-800">{selectedCandidate.candidateProfile?.experience || "Not added yet"}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {selectedCandidate.candidateProfile?.linkedin ? (
+                          <a href={selectedCandidate.candidateProfile.linkedin} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100">LinkedIn</a>
+                        ) : null}
+                        {selectedCandidate.candidateProfile?.github ? (
+                          <a href={selectedCandidate.candidateProfile.github} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100">GitHub</a>
+                        ) : null}
+                        {selectedCandidate.candidateProfile?.portfolio ? (
+                          <a href={selectedCandidate.candidateProfile.portfolio} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100">Portfolio</a>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <h3 className="text-lg font-semibold text-slate-900">Skills</h3>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(selectedCandidate.candidateProfile?.skills?.length ? selectedCandidate.candidateProfile.skills : []).map((skill) => (
+                          <span key={skill.id || skill.name} className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
+                            {skill.name}
+                          </span>
+                        )) || <p className="text-sm text-slate-500">No skills added yet.</p>}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <h3 className="text-lg font-semibold text-slate-900">Education</h3>
+                      <div className="mt-3 space-y-3">
+                        {selectedCandidate.candidateProfile?.education?.length ? (
+                          selectedCandidate.candidateProfile.education.map((item) => (
+                            <div key={item.id || item.institution} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                              <p className="font-medium text-slate-900">{item.institution}</p>
+                              <p className="mt-1 text-sm text-slate-600">{[item.degree, item.field].filter(Boolean).join(" · ") || "Education details"}</p>
+                              {(item.startYear || item.endYear) && (
+                                <p className="mt-2 text-xs text-slate-500">
+                                  {item.startYear || "--"} - {item.endYear || "Present"}
+                                </p>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-slate-500">No education added yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <h3 className="text-lg font-semibold text-slate-900">Resume</h3>
+                      {selectedCandidate.candidateProfile?.resumes?.length ? (
+                        <div className="mt-3 space-y-3">
+                          {selectedCandidate.candidateProfile.resumes.map((resume) => (
+                            <div key={resume.id || resume.fileUrl || "resume"} className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3">
+                              <p className="font-medium text-slate-900">{resume.summary || "Resume uploaded"}</p>
+                              {resume.rawText ? (
+                                <p className="mt-2 line-clamp-5 text-sm text-slate-600">{resume.rawText.slice(0, 220)}{resume.rawText.length > 220 ? "…" : ""}</p>
+                              ) : null}
+                              {resume.fileUrl ? (
+                                <a href={resume.fileUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-medium text-indigo-700 hover:text-indigo-800">
+                                  Open resume
+                                </a>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-slate-500">No resume uploaded yet.</p>
+                      )}
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <h3 className="text-lg font-semibold text-slate-900">Certifications</h3>
+                      <div className="mt-3 space-y-3">
+                        {selectedCandidate.candidateProfile?.certifications?.length ? (
+                          selectedCandidate.candidateProfile.certifications.map((item) => (
+                            <div key={item.id || item.name} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                              <p className="font-medium text-slate-900">{item.name}</p>
+                              <p className="mt-1 text-sm text-slate-600">{item.issuer || "Issuer not provided"}</p>
+                              {item.credentialUrl && (
+                                <a href={item.credentialUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-medium text-indigo-700 hover:text-indigo-800">
+                                  View credential
+                                </a>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-slate-500">No certifications added yet.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <h3 className="text-lg font-semibold text-slate-900">Projects</h3>
+                      <div className="mt-3 space-y-3">
+                        {selectedCandidate.candidateProfile?.projects?.length ? (
+                          selectedCandidate.candidateProfile.projects.map((project) => (
+                            <div key={project.id || project.name} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                              <p className="font-medium text-slate-900">{project.name}</p>
+                              <p className="mt-1 text-sm text-slate-600">{project.description || "Project description not added."}</p>
+                              {project.projectUrl && (
+                                <a href={project.projectUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-medium text-indigo-700 hover:text-indigo-800">
+                                  Open project
+                                </a>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-slate-500">No project details added yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export function RecruiterAiMatches() {
+  const [jobs, setJobs] = useState<RecruiterJob[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [query, setQuery] = useState("Who are the strongest candidates for this role and what makes them a fit?");
+  const [result, setResult] = useState<null | {
+    job?: { id?: string; title?: string };
+    candidates?: Array<{
+      candidateId?: string;
+      name?: string;
+      score?: number;
+      breakdown?: Record<string, number | string>;
+    }>;
+    answer?: string;
+  }>(null);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [loadingAi, setLoadingAi] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const data = await recruiterApi.getJobs();
+        setJobs(data || []);
+        if (data?.[0]) {
+          setSelectedJobId(data[0].id);
+        }
+      } catch (err) {
+        setError(errorText(err));
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+
+    loadJobs();
+  }, []);
+
+  const selectedJob = jobs.find((job) => job.id === selectedJobId) || jobs[0] || null;
+
+  const runMatch = async () => {
+    if (!selectedJobId || !query.trim()) {
+      setError("Select a job and provide a prompt before running the match scan.");
+      return;
+    }
+
+    setLoadingAi(true);
+    setError("");
+
+    try {
+      const response = await recruiterApi.assistant({
+        jobId: selectedJobId,
+        query: query.trim(),
+        limit: 6,
+      });
+
+      setResult(response as typeof result);
+    } catch (err) {
+      setError(errorText(err));
+      setResult(null);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
+  return (
+    <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
+      
+      <div className="relative overflow-hidden rounded-[30px] border border-violet-200/80 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.18),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_30%),linear-gradient(135deg,#f5f3ff_0%,#eff6ff_35%,#ffffff_100%)] p-5 shadow-[0_30px_90px_-35px_rgba(109,40,217,0.55)] sm:p-6">
+        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-linear-to-br from-violet-400/30 via-indigo-400/20 to-cyan-300/10 blur-3xl" />
+        <div className="absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-linear-to-br from-cyan-400/20 via-sky-300/10 to-violet-300/20 blur-3xl" />
+
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-600">Talent intelligence</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">AI candidate matches</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+              Compare the strongest applicants for each role using the backend ranking model and recruiter AI summary.
+            </p>
+          </div>
+   <Button asChild variant="outline" className="group h-11 rounded-xl border-slate-200 bg-white/90 px-4 font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900">
+              <a href="/recruiter/dashboard">
+                <ArrowUpRight className="mr-2 h-4 w-4 rotate-45 transition-transform duration-200 group-hover:rotate-0" />
+                Back to dashboard
+              </a>
+            </Button>
+          <Button onClick={runMatch} disabled={loadingAi || !selectedJobId} className="h-11 rounded-xl bg-linear-to-r from-violet-600 via-indigo-600 to-sky-600 text-white shadow-lg shadow-violet-500/20 hover:opacity-95">
+            {loadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            {loadingAi ? "Running scan" : "Scan matches"}
+          </Button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 shadow-sm"
+            role="alert"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.6fr]">
+        <motion.div variants={item}>
+          <Card className="overflow-hidden border border-violet-100 bg-white/95 shadow-[0_30px_80px_-40px_rgba(129,140,248,0.5)]">
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <CardTitle className="text-2xl text-slate-900">Open jobs</CardTitle>
+              <CardDescription className="text-slate-600">Choose a role to rank candidates and short-list the strongest options.</CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-3 p-4">
+              {loadingJobs ? (
+                <div className="space-y-3 py-6">
+                  {[1, 2, 3].map((itemKey) => (
+                    <div key={itemKey} className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+                  ))}
+                </div>
+              ) : jobs.length ? (
+                jobs.map((job) => {
+                  const active = job.id === selectedJobId;
+
+                  return (
+                    <motion.button
+                      key={job.id}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.99 }}
+                      type="button"
+                      onClick={() => setSelectedJobId(job.id)}
+                      className={`w-full rounded-2xl border p-4 text-left transition-all ${active ? "border-violet-200 bg-linear-to-r from-violet-50 via-indigo-50 to-sky-50 shadow-md shadow-violet-100" : "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white"}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-slate-900">{job.title}</p>
+                          <p className="mt-1 text-xs text-slate-500">{job.location || "Location not specified"}</p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${job.status === "PUBLISHED" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}>
+                          {job.status || "DRAFT"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                        <span>{job.requiredSkills?.length || 0} skills required</span>
+                        <span>{job._count?.jobApplications || 0} applicants</span>
+                      </div>
+                    </motion.button>
+                  );
+                })
+              ) : (
+                <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+                    <BriefcaseBusiness className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">No jobs available</h3>
+                  <p className="mt-2 text-sm text-slate-600">Create a published role to run talent matching.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={item}>
+          <Card className="overflow-hidden border border-violet-200 bg-[linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,0.96),rgba(239,246,255,0.95))] shadow-[0_28px_90px_-40px_rgba(99,102,241,0.6)]">
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <CardTitle className="text-2xl text-slate-900">Match prompt</CardTitle>
+                  <CardDescription className="text-slate-600">Run the recruiter AI against the selected opening.</CardDescription>
+                </div>
+
+                {selectedJob && (
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+                    {selectedJob.title}
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4 p-4">
+              <textarea
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ask who the strongest candidates are and why they fit this role."
+                className="min-h-28 w-full rounded-2xl border border-violet-200 bg-white/90 p-3 text-sm text-slate-700 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+              />
+
+              <Button
+                onClick={runMatch}
+                disabled={loadingAi || !selectedJobId}
+                className="w-full rounded-xl bg-linear-to-r from-violet-600 via-indigo-600 to-sky-600 text-white shadow-lg shadow-violet-500/20 hover:opacity-95"
+              >
+                {loadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                {loadingAi ? "Evaluating talent" : "Evaluate candidates"}
+              </Button>
+
+              {result && (
+                <div className="space-y-5">
+                  <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-4 text-slate-50 shadow-inner shadow-slate-900/30">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-violet-200">
+                        <Sparkles className="h-4 w-4" />
+                        AI recommendations
+                      </div>
+
+                      {result.job?.title && (
+                        <span className="rounded-full border border-violet-400/40 bg-violet-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+                          {result.job.title}
+                        </span>
+                      )}
+                    </div>
+
+                    {result.candidates?.length ? (
+                      <div className="space-y-3">
+                        {result.candidates.map((candidate, index) => {
+                          const score = Number(candidate.score ?? 0);
+                          const breakdownEntries = Object.entries(candidate.breakdown ?? {});
+
+                          return (
+                            <motion.div
+                              key={candidate.candidateId || `${candidate.name}-${index}`}
+                              initial={{ opacity: 0, y: 16 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.08 }}
+                              className="rounded-2xl border border-white/10 bg-white/5 p-3"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="font-semibold text-white">{candidate.name || `Candidate ${index + 1}`}</p>
+                                  <p className="text-[10px] uppercase tracking-[0.12em] text-slate-400">Candidate ID: {candidate.candidateId || "unknown"}</p>
+                                </div>
+
+                                <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
+                                  {score.toFixed(2)}%
+                                </span>
+                              </div>
+
+                              <div className="mt-3 space-y-2">
+                                {breakdownEntries.map(([label, value]) => {
+                                  const numericValue = typeof value === "number" ? value : Number(value || 0);
+                                  return (
+                                    <div key={label}>
+                                      <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-[0.12em] text-slate-400">
+                                        <span>{label.replace(/([A-Z])/g, " $1").trim()}</span>
+                                        <span>{numericValue.toFixed(2)}%</span>
+                                      </div>
+                                      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                                        <motion.div
+                                          initial={{ width: 0 }}
+                                          animate={{ width: `${Math.min(100, numericValue)}%` }}
+                                          transition={{ duration: 0.5, ease: "easeOut" }}
+                                          className="h-full rounded-full bg-linear-to-r from-violet-400 via-indigo-400 to-cyan-400"
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+
+                    {result.answer && (
+                      <div className="mt-4 rounded-2xl border border-violet-200/20 bg-white/5 p-4">
+                        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-200">Recruiter summary</p>
+                        <div className="space-y-3 text-sm leading-6 text-slate-100">
+                          {result.answer.split(/\n\s*\n/).filter(Boolean).map((block, index) => (
+                            <p key={`${block.slice(0, 12)}-${index}`} className="whitespace-pre-wrap">{block}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
 }
 
 export function RecruiterCompany() {

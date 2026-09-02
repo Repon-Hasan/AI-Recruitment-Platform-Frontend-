@@ -9,7 +9,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { motion } from "motion/react";
-
+import Link from "next/link";
 import {
   Avatar,
   AvatarFallback,
@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import NotificationButton from "./notification-Button";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -72,12 +73,12 @@ export function Topbar({
 
       {/* Search */}
       <div className="relative hidden max-w-md flex-1 md:block">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        {/* <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
         <Input
           placeholder="Search jobs, candidates..."
           className="h-10 rounded-xl border-muted bg-muted/40 pl-9 focus-visible:bg-background"
-        />
+        /> */}
       </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
@@ -106,19 +107,13 @@ export function Topbar({
         </Button>
 
         {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative rounded-xl"
-        >
-          <Bell className="h-5 w-5" />
+    <div className="ml-auto flex items-center gap-2">
+  {/* Other topbar buttons */}
 
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+  <NotificationButton />
 
-          <span className="sr-only">
-            Notifications
-          </span>
-        </Button>
+  {/* Other topbar buttons */}
+</div>
 
         <Separator
           orientation="vertical"
@@ -151,37 +146,58 @@ export function Topbar({
 
               <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
           </DropdownMenuTrigger>
+<DropdownMenuContent
+  align="end"
+  className="w-56"
+>
+  <DropdownMenuGroup>
+    <DropdownMenuLabel>
+      My Account
+    </DropdownMenuLabel>
 
-          <DropdownMenuContent
-            align="end"
-            className="w-56"
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>
-                My Account
-              </DropdownMenuLabel>
+    <DropdownMenuSeparator />
 
-              <DropdownMenuSeparator />
+    <DropdownMenuItem className="p-0">
+      <Link
+        href="/profile"
+        className="flex w-full cursor-pointer items-center px-2 py-1.5"
+      >
+        Profile
+      </Link>
+    </DropdownMenuItem>
 
-              <DropdownMenuItem>
-                Profile
-              </DropdownMenuItem>
+    <DropdownMenuItem className="p-0">
+      <Link
+        href="/recruiter/settings"
+        className="flex w-full cursor-pointer items-center px-2 py-1.5"
+      >
+        Settings
+      </Link>
+    </DropdownMenuItem>
 
-              <DropdownMenuItem>
-                Settings
-              </DropdownMenuItem>
+    <DropdownMenuItem className="p-0">
+      <Link
+        href="/recruiter/billing"
+        className="flex w-full cursor-pointer items-center px-2 py-1.5"
+      >
+        Billing
+      </Link>
+    </DropdownMenuItem>
+  </DropdownMenuGroup>
 
-              <DropdownMenuItem>
-                Billing
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+  <DropdownMenuSeparator />
 
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="text-destructive">
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+  <DropdownMenuItem
+    className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+  >
+    <Link
+      href="/logout"
+      className="flex w-full items-center"
+    >
+      Logout
+    </Link>
+  </DropdownMenuItem>
+</DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>

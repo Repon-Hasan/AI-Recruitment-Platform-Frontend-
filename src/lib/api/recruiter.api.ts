@@ -24,7 +24,22 @@ export type Application = {
   id: string;
   status?: string;
   createdAt?: string;
-  candidateProfile?: { user?: { name?: string; email?: string }; headline?: string; location?: string };
+  candidateProfile?: {
+    id?: string;
+    user?: { name?: string; email?: string };
+    headline?: string;
+    location?: string;
+    phone?: string | null;
+    experience?: string | null;
+    linkedin?: string | null;
+    github?: string | null;
+    portfolio?: string | null;
+    skills?: Array<{ id?: string; name: string }>;
+    education?: Array<{ id?: string; institution: string; degree?: string | null; field?: string | null; startYear?: number | null; endYear?: number | null }>;
+    projects?: Array<{ id?: string; name: string; description?: string | null; technologies?: string | null; projectUrl?: string | null }>;
+    certifications?: Array<{ id?: string; name: string; issuer?: string | null; credentialUrl?: string | null; issueDate?: string | null }>;
+    resumes?: Array<{ id?: string; fileUrl?: string | null; summary?: string | null; rawText?: string | null; createdAt?: string | null }>;
+  };
   job?: { id: string; title: string };
 };
 

@@ -14,7 +14,11 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { token, headers, ...rest } = options;
   const url = `${API_URL}${endpoint}`;
-
+         console.log("=================================");
+  console.log("API REQUEST");
+  console.log("URL:", url);
+  console.log("METHOD:", rest.method ?? "GET");
+  console.log("=================================");
   const response = await fetch(url, {
     ...rest,
     credentials: "include",
