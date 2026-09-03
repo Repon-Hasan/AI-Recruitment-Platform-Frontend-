@@ -39,6 +39,8 @@ export default function CandidateCard({
   index,
   ranked,
 }: CandidateCardProps) {
+
+  console.log("CandidateData",candidate)
   const score = Math.max(
     0,
     Math.min(100, Number(candidate.matchScore ?? candidate.score ?? 0))

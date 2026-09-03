@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { recruiterApi, type Application, type Company, type RecruiterJob } from "@/lib/api/recruiter.api";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const emptyJob = { title: "", description: "", location: "", remoteType: "ONSITE", employmentType: "FULL_TIME", experienceLevel: "MID", salaryMin: "", salaryMax: "", salaryCurrency: "BDT", deadline: "", requiredSkills: "", status: "DRAFT" };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
@@ -1072,35 +1073,55 @@ export function RecruiterApplications() {
                               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-600">Candidate ID: {candidateId}</p>
                             </div>
 
-                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                                onClick={() => setSelectedCandidate(application)}
-                              >
-                                View profile
-                              </Button>
+                      
+<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+  {/* View full application */}
+  <Button
+    variant="outline"
+    size="sm"
+    className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 transition-all hover:border-indigo-300 hover:bg-indigo-100 hover:text-indigo-800"
+  >
+    <Link href={`/recruiter/applications/${application.id}`}>
+      View application
+      <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </Link>
+  </Button>
 
-                              <select
-                                className="h-9 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 sm:w-40"
-                                value={status}
-                                onChange={async (e) => {
-                                  try {
-                                    await recruiterApi.updateApplication(application.id, e.target.value);
-                                    await load();
-                                  } catch (err) {
-                                    setError(errorText(err));
-                                  }
-                                }}
-                              >
-                                <option value="PENDING">PENDING</option>
-                                <option value="REVIEWING">REVIEWING</option>
-                                <option value="SHORTLISTED">SHORTLISTED</option>
-                                <option value="REJECTED">REJECTED</option>
-                                <option value="ACCEPTED">ACCEPTED</option>
-                              </select>
-                            </div>
+  {/* Quick candidate profile */}
+  <Button
+    variant="outline"
+    size="sm"
+    className="rounded-xl border-slate-200 bg-white text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900"
+    onClick={() => setSelectedCandidate(application)}
+  >
+    View profile
+  </Button>
+
+  {/* Application status */}
+  <select
+    className="h-9 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 sm:w-40"
+    value={status}
+    onChange={async (e) => {
+      try {
+        await recruiterApi.updateApplication(
+          application.id,
+          e.target.value
+        );
+        await load();
+      } catch (err) {
+        setError(errorText(err));
+      }
+    }}
+  >
+    <option value="PENDING">PENDING</option>
+    <option value="REVIEWING">REVIEWING</option>
+    <option value="SHORTLISTED">SHORTLISTED</option>
+    <option value="REJECTED">REJECTED</option>
+    <option value="ACCEPTED">ACCEPTED</option>
+  </select>
+</div>
+
+
                           </div>
                         </motion.div>
                       );

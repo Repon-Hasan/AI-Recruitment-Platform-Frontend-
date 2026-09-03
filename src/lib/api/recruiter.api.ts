@@ -64,4 +64,28 @@ export const recruiterApi = {
   assistant: async (body: { jobId?: string; query: string; limit?: number }) => unwrap(await apiClient<Envelope<unknown> | unknown>("/ai-recruiter/assistant", { method: "POST", body: JSON.stringify(body) })),
   getComplaints: async () => unwrap(await apiClient<Envelope<unknown[]> | unknown[]>("/company/complaints")),
   getPenalties: async () => unwrap(await apiClient<Envelope<unknown[]> | unknown[]>("/company/penalties")),
+   
+  getApplicationById: async (
+    applicationId: string,
+  ) => {
+    if (!applicationId) {
+      throw new Error(
+        "Application ID is required",
+      );
+    }
+
+    const response =
+      await apiClient<
+        Envelope<Application>
+      >(
+        `/recruiter/applications/${encodeURIComponent(
+          applicationId,
+        )}`,
+        {
+          method: "GET",
+        },
+      );
+
+    return response.data;
+  },
 };

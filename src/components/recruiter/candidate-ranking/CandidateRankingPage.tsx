@@ -6,19 +6,18 @@ import {
   useMemo,
   useState,
 } from "react";
-
 import {
   AlertCircle,
   BrainCircuit,
   CheckCircle2,
   Filter,
+  Plus,
   RefreshCw,
   Search,
   Sparkles,
   Users,
   X,
 } from "lucide-react";
-
 import {
   AnimatePresence,
   motion,
@@ -38,29 +37,29 @@ interface CandidateRankingPageProps {
   jobId?: string;
 }
 
-type SortOption =
-  | "score"
-  | "experience"
-  | "recent";
+type SortOption = "score" | "experience" | "recent";
 
 export default function CandidateRankingPage({
   jobId: propJobId,
 }: CandidateRankingPageProps) {
   const jobId = propJobId ?? "";
 
-  const [applicants, setApplicants] = useState<
+  // =========================================================
+  // State
+  // =========================================================
+
+  const [applicants, setApplicants] = useState<RankedCandidate[]>(
+    [],
+  );
+
+  const [rankedCandidates, setRankedCandidates] = useState<
     RankedCandidate[]
   >([]);
-
-  const [rankedCandidates, setRankedCandidates] =
-    useState<RankedCandidate[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [ranking, setRanking] = useState(false);
 
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [minScore, setMinScore] = useState(0);
@@ -68,14 +67,11 @@ export default function CandidateRankingPage({
   const [sortBy, setSortBy] =
     useState<SortOption>("score");
 
-  const [showFilters, setShowFilters] =
-    useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  /*
-   * =========================================================
-   * Load Applicants
-   * =========================================================
-   */
+  // =========================================================
+  // Load Applicants
+  // =========================================================
 
   const loadApplicants = useCallback(async () => {
     if (!jobId) {
@@ -89,9 +85,7 @@ export default function CandidateRankingPage({
       setError(null);
 
       const response =
-        await candidateRankingApi.getApplicants(
-          jobId,
-        );
+        await candidateRankingApi.getApplicants(jobId);
 
       console.log(
         "✅ Candidate ranking response:",
@@ -100,17 +94,13 @@ export default function CandidateRankingPage({
 
       setApplicants(response.data);
 
-      /*
-       * Important:
-       * Do not automatically consider applicants ranked
-       * just because they were returned by the GET endpoint.
-       *
-       * Ranking should happen after clicking "Rank with AI".
-       */
+      // Important:
+      // GET applicants should NOT automatically mean ranked.
+      // Ranking happens only after clicking "Rank with AI".
       setRankedCandidates([]);
     } catch (err) {
       console.error(
-        "Failed to load applicants:",
+        "❌ Failed to load applicants:",
         err,
       );
 
@@ -124,22 +114,23 @@ export default function CandidateRankingPage({
     }
   }, [jobId]);
 
-  /*
-   * =========================================================
-   * Initial Load
-   * =========================================================
-   */
+  // =========================================================
+  // Initial Load
+  // =========================================================
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadApplicants();
+    const timeoutId = globalThis.setTimeout(() => {
+      void loadApplicants();
+    }, 0);
+
+    return () => {
+      globalThis.clearTimeout(timeoutId);
+    };
   }, [loadApplicants]);
 
-  /*
-   * =========================================================
-   * AI Ranking
-   * =========================================================
-   */
+  // =========================================================
+  // AI Ranking
+  // =========================================================
 
   const handleRankCandidates = async () => {
     if (!jobId) {
@@ -148,9 +139,7 @@ export default function CandidateRankingPage({
     }
 
     if (applicants.length === 0) {
-      setError(
-        "There are no applicants to rank.",
-      );
+      setError("There are no applicants to rank.");
       return;
     }
 
@@ -158,20 +147,71 @@ export default function CandidateRankingPage({
       setRanking(true);
       setError(null);
 
+      console.log(
+        "🤖 Starting AI candidate ranking...",
+      );
+
       const response =
-        await candidateRankingApi.rankApplicants(
-          jobId,
-        );
+        await candidateRankingApi.rankApplicants(jobId);
 
       console.log(
         "🤖 AI ranking response:",
         response,
       );
 
+      console.log(
+        "👥 Ranked candidates:",
+        response.data,
+      );
+
+      /*
+       * IMPORTANT
+       * -------------------------------------------------------
+       * The backend now returns complete candidate information:
+       *
+       * {
+       *   applicationId,
+       *   candidateId,
+       *   id,
+       *   name,
+       *   email,
+       *   profileImage,
+       *   phone,
+       *   location,
+       *   experience,
+       *   skills,
+       *   appliedAt,
+       *   resume,
+       *   education,
+       *   linkedin,
+       *   github,
+       *   portfolio,
+       *   score,
+       *   matchScore,
+       *   matchPercentage,
+       *   breakdown,
+       *   strengths,
+       *   weaknesses,
+       *   explanation
+       * }
+       *
+       * Therefore DO NOT merge with applicants here.
+       *
+       * The previous code:
+       *
+       * {
+       *   ...originalCandidate,
+       *   ...rankedCandidate,
+       * }
+       *
+       * could allow "Unknown Candidate" or empty fields from
+       * the API mapper to overwrite the correct candidate data.
+       */
+
       setRankedCandidates(response.data);
     } catch (err) {
       console.error(
-        "Failed to rank candidates:",
+        "❌ Failed to rank candidates:",
         err,
       );
 
@@ -185,101 +225,90 @@ export default function CandidateRankingPage({
     }
   };
 
-  /*
-   * =========================================================
-   * Ranking State
-   * =========================================================
-   */
+  // =========================================================
+  // Ranking State
+  // =========================================================
 
-  const ranked =
-    rankedCandidates.length > 0;
+  const ranked = rankedCandidates.length > 0;
 
   const sourceCandidates = ranked
     ? rankedCandidates
     : applicants;
 
-  /*
-   * =========================================================
-   * Filter / Search / Sort
-   * =========================================================
-   */
+  // =========================================================
+  // Filter / Search / Sort
+  // =========================================================
 
   const candidates = useMemo(() => {
-    const query = search
-      .toLowerCase()
-      .trim();
+    const query = search.toLowerCase().trim();
 
-    const filtered =
-      sourceCandidates.filter((candidate) => {
+    const filtered = sourceCandidates.filter(
+      (candidate) => {
+        const candidateName =
+          candidate.name?.toLowerCase() ?? "";
+
+        const candidateEmail =
+          candidate.email?.toLowerCase() ?? "";
+
+        const candidateLocation =
+          candidate.location?.toLowerCase() ?? "";
+
         const matchesSearch =
           !query ||
-          candidate.name
-            .toLowerCase()
-            .includes(query) ||
-          candidate.email
-            ?.toLowerCase()
-            .includes(query) ||
-          candidate.location
-            ?.toLowerCase()
-            .includes(query) ||
+          candidateName.includes(query) ||
+          candidateEmail.includes(query) ||
+          candidateLocation.includes(query) ||
           candidate.skills.some((skill) =>
-            skill
-              .toLowerCase()
-              .includes(query),
+            skill.toLowerCase().includes(query),
           );
 
-        const score =
-          Number(
-            candidate.matchScore ??
-              candidate.score ??
-              0,
-          );
+        const score = Number(
+          candidate.matchScore ??
+            candidate.score ??
+            0,
+        );
 
-        const matchesScore =
-          score >= minScore;
+        const matchesScore = score >= minScore;
 
         return (
           matchesSearch &&
           matchesScore
         );
-      });
-
-    return [...filtered].sort(
-      (a, b) => {
-        if (sortBy === "score") {
-          return (
-            Number(
-              b.matchScore ??
-                b.score ??
-                0,
-            ) -
-            Number(
-              a.matchScore ??
-                a.score ??
-                0,
-            )
-          );
-        }
-
-        if (
-          sortBy === "experience"
-        ) {
-          return (
-            Number(b.experience ?? 0) -
-            Number(a.experience ?? 0)
-          );
-        }
-
-        return (
-          new Date(
-            b.appliedAt ?? 0,
-          ).getTime() -
-          new Date(
-            a.appliedAt ?? 0,
-          ).getTime()
-        );
       },
     );
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "score") {
+        return (
+          Number(
+            b.matchScore ??
+              b.score ??
+              0,
+          ) -
+          Number(
+            a.matchScore ??
+              a.score ??
+              0,
+          )
+        );
+      }
+
+      if (sortBy === "experience") {
+        return (
+          Number(b.experience ?? 0) -
+          Number(a.experience ?? 0)
+        );
+      }
+
+      return (
+        new Date(
+          b.appliedAt ?? 0,
+        ).getTime() -
+        new Date(
+          a.appliedAt ?? 0,
+        ).getTime()
+      );
+    });
   }, [
     sourceCandidates,
     search,
@@ -287,11 +316,9 @@ export default function CandidateRankingPage({
     sortBy,
   ]);
 
-  /*
-   * =========================================================
-   * Statistics
-   * =========================================================
-   */
+  // =========================================================
+  // Statistics
+  // =========================================================
 
   const topScore = useMemo(() => {
     if (
@@ -337,19 +364,16 @@ export default function CandidateRankingPage({
       );
 
     return Math.round(
-      total /
-        rankedCandidates.length,
+      total / rankedCandidates.length,
     );
   }, [
     ranked,
     rankedCandidates,
   ]);
 
-  /*
-   * =========================================================
-   * Render
-   * =========================================================
-   */
+  // =========================================================
+  // Render
+  // =========================================================
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-50">
@@ -501,6 +525,13 @@ export default function CandidateRankingPage({
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <a
+                href="/recruiter/dashboard"
+                className="group inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow-md"
+              >
+                <Plus className="mr-2 h-4 w-4 rotate-45 transition-transform duration-200 group-hover:rotate-0" />
+                Back to Dashboard
+              </a>
               {/* Filters */}
 
               <button
@@ -584,6 +615,7 @@ export default function CandidateRankingPage({
                 }
                 disabled={
                   ranking ||
+                  loading ||
                   applicants.length === 0
                 }
                 whileHover={{
@@ -686,7 +718,7 @@ export default function CandidateRankingPage({
           )}
         </AnimatePresence>
 
-        {/* Stats */}
+        {/* Statistics */}
 
         <RankingStats
           totalApplicants={
@@ -694,9 +726,7 @@ export default function CandidateRankingPage({
           }
           ranked={ranked}
           topScore={topScore}
-          averageScore={
-            averageScore
-          }
+          averageScore={averageScore}
         />
 
         {/* Filters */}
@@ -725,9 +755,7 @@ export default function CandidateRankingPage({
                 search={search}
                 setSearch={setSearch}
                 minScore={minScore}
-                setMinScore={
-                  setMinScore
-                }
+                setMinScore={setMinScore}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
               />
@@ -880,21 +908,42 @@ export default function CandidateRankingPage({
             <AnimatePresence mode="popLayout">
               {candidates.map(
                 (candidate, index) => (
-                  <CandidateCard
+                  <motion.div
                     key={
                       candidate.applicationId ??
                       candidate.candidateId ??
                       candidate.id
                     }
-                    candidate={candidate}
-                    rank={
-                      ranked
-                        ? index + 1
-                        : undefined
-                    }
-                    index={index}
-                    ranked={ranked}
-                  />
+                    layout
+                    initial={{
+                      opacity: 0,
+                      y: 20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -20,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      delay:
+                        index * 0.04,
+                    }}
+                  >
+                    <CandidateCard
+                      candidate={candidate}
+                      rank={
+                        ranked
+                          ? index + 1
+                          : undefined
+                      }
+                      index={index}
+                      ranked={ranked}
+                    />
+                  </motion.div>
                 ),
               )}
             </AnimatePresence>
