@@ -1,6 +1,12 @@
+
 import { redirect } from "next/navigation";
-import ProfileView from "@/components/modules/authServices/ProfileView";
+
+;
+
 import { getProfileAction } from "@/app/(common)/(authServices)/profile/_action";
+import AdminProfile from "@/components/modules/profiles/adminProfile";
+import RecruiterProfile from "@/components/modules/profiles/recruiterProfile";
+import CandidateProfile from "@/components/modules/profiles/candidateProfile";
 
 export default async function ProfilePage() {
   const result = await getProfileAction();
@@ -9,9 +15,56 @@ export default async function ProfilePage() {
     redirect("/login?redirect=/profile");
   }
 
-  return (
-    <main className="relative flex min-h-[calc(100vh-1rem)] items-center justify-center px-3 py-8 sm:px-6 sm:py-12">
-      <ProfileView user={result.user} candidateProfile={result.candidateProfile} />
-    </main>
-  );
+  const user = result.user;
+
+  const role = user.role?.toUpperCase();
+
+  switch (role) {
+    case "ADMIN":
+      return (
+        <AdminProfile
+          user={{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image,
+            emailVerified: user.emailVerified,
+          }}
+        />
+      );
+
+    case "RECRUITER":
+      return (
+        <RecruiterProfile
+          user={{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image,
+            emailVerified: user.emailVerified,
+          }}
+        />
+      );
+
+    case "CANDIDATE":
+      return (
+        <CandidateProfile
+          user={{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image,
+            emailVerified: user.emailVerified,
+          }}
+          candidateProfile={result.candidateProfile}
+        />
+      );
+
+    default:
+      redirect("/");
+  }
 }
+

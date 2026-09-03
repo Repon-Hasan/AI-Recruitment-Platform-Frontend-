@@ -3,10 +3,16 @@
 
 import {
   ChevronDown,
-  Home,
+  LogOut,
   Menu,
   Search,
   Sparkles,
+} from "lucide-react";
+import {
+  Home,
+  User,
+  Settings,
+  CreditCard,
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -140,40 +146,55 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             align="end"
             className="w-56"
           >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>
-                My Account
-              </DropdownMenuLabel>
+    
+<DropdownMenuGroup>
+  <DropdownMenuLabel>
+    My Account
+  </DropdownMenuLabel>
 
-              <DropdownMenuSeparator />
+  <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="p-0">
-                <Link
-                  href="/profile"
-                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
-                >
-                  Profile
-                </Link>
-              </DropdownMenuItem>
+  <DropdownMenuItem className="p-0">
+    <Link
+      href="/"
+      className="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5"
+    >
+      <Home className="h-4 w-4 text-muted-foreground" />
+      <span>Home</span>
+    </Link>
+  </DropdownMenuItem>
 
-              <DropdownMenuItem className="p-0">
-                <Link
-                  href="/recruiter/settings"
-                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
-                >
-                  Settings
-                </Link>
-              </DropdownMenuItem>
+  <DropdownMenuItem className="p-0">
+    <Link
+      href="/profile"
+      className="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5"
+    >
+      <User className="h-4 w-4 text-muted-foreground" />
+      <span>Profile</span>
+    </Link>
+  </DropdownMenuItem>
 
-              <DropdownMenuItem className="p-0">
-                <Link
-                  href="/recruiter/billing"
-                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
-                >
-                  Billing
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+  <DropdownMenuItem className="p-0">
+    <Link
+      href="/recruiter/settings"
+      className="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5"
+    >
+      <Settings className="h-4 w-4 text-muted-foreground" />
+      <span>Settings</span>
+    </Link>
+  </DropdownMenuItem>
+
+  <DropdownMenuItem className="p-0">
+    <Link
+      href="/recruiter/billing"
+      className="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5"
+    >
+      <CreditCard className="h-4 w-4 text-muted-foreground" />
+      <span>Billing</span>
+    </Link>
+  </DropdownMenuItem>
+</DropdownMenuGroup>
+
 
             <DropdownMenuSeparator />
 
@@ -184,7 +205,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 href="/logout"
                 className="flex w-full items-center"
               >
-                Logout
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+               <span>Logout</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>

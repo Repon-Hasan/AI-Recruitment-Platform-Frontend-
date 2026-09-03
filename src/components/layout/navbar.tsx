@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+
 /* =========================================================
    USER TYPE
 ========================================================= */

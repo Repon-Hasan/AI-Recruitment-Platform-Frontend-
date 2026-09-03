@@ -5,7 +5,6 @@ import {
   CalendarDays,
   FileText,
   FolderKanban,
-  Gauge,
   Headphones,
   LayoutDashboard,
   MessageSquare,
