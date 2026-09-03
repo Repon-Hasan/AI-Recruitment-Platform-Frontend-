@@ -32,6 +32,9 @@ import {
   type Interview,
   type InterviewStatus,
 } from "@/lib/api/interview";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
+
 
 /* =========================================================
    Types
@@ -315,6 +318,7 @@ function InterviewSkeleton() {
           animate={{ opacity: 1 }}
           className="h-52 animate-pulse rounded-3xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03]"
         />
+        
       ))}
     </div>
   );
@@ -945,7 +949,7 @@ export default function RecruiterInterviewsPage() {
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                 Interviews
               </h1>
-
+                   
               <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400 sm:text-base">
                 Manage candidate interviews, join scheduled meetings,
                 and communicate with applicants from one place.
@@ -965,6 +969,16 @@ export default function RecruiterInterviewsPage() {
               disabled={loading}
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200 dark:hover:border-blue-500/30 dark:hover:text-blue-300"
             >
+              <Button
+  asChild
+  variant="outline"
+  className="group h-11 rounded-xl border-slate-200 bg-white/90 px-4 font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+>
+  <a href="/recruiter/dashboard">
+    <ArrowUpRight className="mr-2 h-4 w-4 rotate-45 transition-transform duration-200 group-hover:rotate-0" />
+    Back to dashboard
+  </a>
+</Button>
               <FaRotate
                 className={loading ? "animate-spin" : ""}
               />
