@@ -1,7 +1,7 @@
+
 "use client";
 
 import {
-  Bell,
   ChevronDown,
   Home,
   Menu,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+
 import {
   Avatar,
   AvatarFallback,
@@ -17,14 +18,8 @@ import {
 } from "@/components/ui/avatar";
 
 import { Button } from "@/components/ui/button";
-
-import {
-  Input,
-} from "@/components/ui/input";
-
-import {
-  Separator,
-} from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 import {
   DropdownMenu,
@@ -35,15 +30,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import NotificationButton from "./notification-Button";
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
-export function Topbar({
-  onMenuClick,
-}: TopbarProps) {
+export function Topbar({ onMenuClick }: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
       {/* Mobile Menu */}
@@ -54,10 +48,7 @@ export function Topbar({
         onClick={onMenuClick}
       >
         <Menu className="h-5 w-5" />
-
-        <span className="sr-only">
-          Open navigation
-        </span>
+        <span className="sr-only">Open navigation</span>
       </Button>
 
       {/* Mobile Logo */}
@@ -66,27 +57,33 @@ export function Topbar({
           <Sparkles className="h-4 w-4" />
         </div>
 
-        <span className="font-bold">
-          HireAI
-        </span>
+        <span className="font-bold">HireAI</span>
       </div>
 
       {/* Search */}
       <div className="relative hidden max-w-md flex-1 md:block">
-        {/* <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        {/* 
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
         <Input
           placeholder="Search jobs, candidates..."
           className="h-10 rounded-xl border-muted bg-muted/40 pl-9 focus-visible:bg-background"
-        /> */}
+        />
+        */}
       </div>
 
+      {/* Right Side */}
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        {/* Home */}
         <motion.a
           href="/"
           whileHover={{ y: -2, scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
-          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 20,
+          }}
           className="hidden items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex"
         >
           <Home className="h-4 w-4" />
@@ -100,21 +97,15 @@ export function Topbar({
           className="md:hidden"
         >
           <Search className="h-5 w-5" />
-
-          <span className="sr-only">
-            Search
-          </span>
+          <span className="sr-only">Search</span>
         </Button>
 
         {/* Notifications */}
-    <div className="ml-auto flex items-center gap-2">
-  {/* Other topbar buttons */}
+        <div className="flex items-center gap-2">
+          <NotificationButton />
+        </div>
 
-  <NotificationButton />
-
-  {/* Other topbar buttons */}
-</div>
-
+        {/* Separator */}
         <Separator
           orientation="vertical"
           className="mx-1 hidden h-7 sm:block"
@@ -122,84 +113,84 @@ export function Topbar({
 
         {/* User Menu */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="h-10 gap-2 rounded-xl px-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src="/images/avatar.png"
-                  alt="Repon Hasan"
-                />
+          <DropdownMenuTrigger className="flex h-10 items-center gap-2 rounded-xl px-2 outline-none transition-colors hover:bg-muted">
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src="/images/avatar.png"
+                alt="Repon Hasan"
+              />
 
-                <AvatarFallback>
-                  RH
-                </AvatarFallback>
-              </Avatar>
+              <AvatarFallback>RH</AvatarFallback>
+            </Avatar>
 
-              <div className="hidden text-left lg:block">
-                <p className="text-sm font-medium">
-                  Repon Hasan
-                </p>
+            <div className="hidden text-left lg:block">
+              <p className="text-sm font-medium">
+                Repon Hasan
+              </p>
 
-                <p className="text-xs text-muted-foreground">
-                  Pro Plan
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Pro Plan
+              </p>
+            </div>
 
-              <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
+            <ChevronDown className="hidden h-4 w-4 text-muted-foreground lg:block" />
           </DropdownMenuTrigger>
-<DropdownMenuContent
-  align="end"
-  className="w-56"
->
-  <DropdownMenuGroup>
-    <DropdownMenuLabel>
-      My Account
-    </DropdownMenuLabel>
 
-    <DropdownMenuSeparator />
+          <DropdownMenuContent
+            align="end"
+            className="w-56"
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                My Account
+              </DropdownMenuLabel>
 
-    <DropdownMenuItem className="p-0">
-      <Link
-        href="/profile"
-        className="flex w-full cursor-pointer items-center px-2 py-1.5"
-      >
-        Profile
-      </Link>
-    </DropdownMenuItem>
+              <DropdownMenuSeparator />
 
-    <DropdownMenuItem className="p-0">
-      <Link
-        href="/recruiter/settings"
-        className="flex w-full cursor-pointer items-center px-2 py-1.5"
-      >
-        Settings
-      </Link>
-    </DropdownMenuItem>
+              <DropdownMenuItem className="p-0">
+                <Link
+                  href="/profile"
+                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
+                >
+                  Profile
+                </Link>
+              </DropdownMenuItem>
 
-    <DropdownMenuItem className="p-0">
-      <Link
-        href="/recruiter/billing"
-        className="flex w-full cursor-pointer items-center px-2 py-1.5"
-      >
-        Billing
-      </Link>
-    </DropdownMenuItem>
-  </DropdownMenuGroup>
+              <DropdownMenuItem className="p-0">
+                <Link
+                  href="/recruiter/settings"
+                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
+                >
+                  Settings
+                </Link>
+              </DropdownMenuItem>
 
-  <DropdownMenuSeparator />
+              <DropdownMenuItem className="p-0">
+                <Link
+                  href="/recruiter/billing"
+                  className="flex w-full cursor-pointer items-center px-2 py-1.5"
+                >
+                  Billing
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
 
-  <DropdownMenuItem
-    className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
-  >
-    <Link
-      href="/logout"
-      className="flex w-full items-center"
-    >
-      Logout
-    </Link>
-  </DropdownMenuItem>
-</DropdownMenuContent>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+            >
+              <Link
+                href="/logout"
+                className="flex w-full items-center"
+              >
+                Logout
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
   );
 }
+
