@@ -113,7 +113,7 @@ const recruiterNavigation = [
   },
   {
     name: "Jobs",
-    href: "/jobs",
+    href: "/my-jobs",
     icon: BriefcaseBusiness,
   },
   {

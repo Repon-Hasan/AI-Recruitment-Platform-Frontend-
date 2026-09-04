@@ -30,6 +30,75 @@ export interface JobsResponse {
   };
 }
 
+export type JobStatus =
+  | "DRAFT"
+  | "PUBLISHED"
+  | "CLOSED"
+  | "ARCHIVED"
+  | string;
+
+export type RemoteType =
+  | "REMOTE"
+  | "HYBRID"
+  | "ONSITE"
+  | string;
+
+export type EmploymentType =
+  | "FULL_TIME"
+  | "PART_TIME"
+  | "CONTRACT"
+  | "INTERNSHIP"
+  | "TEMPORARY"
+  | string;
+
+export type ExperienceLevel =
+  | "ENTRY"
+  | "JUNIOR"
+  | "MID"
+  | "SENIOR"
+  | "LEAD"
+  | string;
+
+export interface JobSkill {
+  id: string;
+  jobId: string;
+  name: string;
+  priority: string;
+}
+
+export interface JobCounts {
+  jobApplications: number;
+  matches: number;
+}
+
+export interface RecruiterJob {
+  id: string;
+  companyId: string;
+  title: string;
+  description: string;
+  location: string;
+  image: string | null;
+  remoteType: RemoteType;
+  employmentType: EmploymentType;
+  experienceLevel: ExperienceLevel;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null;
+  deadline: string | null;
+  status: JobStatus;
+  publishedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requiredSkills: JobSkill[];
+  _count: JobCounts;
+}
+
+interface MyJobsResponse {
+  success: boolean;
+  message: string;
+  data: RecruiterJob[];
+}
 /**
  * GET /api/v1/job
  */
@@ -159,3 +228,13 @@ export async function searchJobs(
 
   return response.data;
 }
+
+export const jobsApi = {
+  async getMyJobs(): Promise<RecruiterJob[]> {
+    const response = await apiClient<MyJobsResponse>(
+      "/api/v1/job/my-jobs",
+    );
+
+    return response.data;
+  },
+};
