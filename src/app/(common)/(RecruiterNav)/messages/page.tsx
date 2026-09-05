@@ -3,5 +3,9 @@ import RecruiterMessagesPage from "@/components/recruiter/messages/RecruiterMess
 ;
 
 export default function MessagesPage() {
-  return <RecruiterMessagesPage />;
+  return (
+    <div className="mt-16">
+      <RecruiterMessagesPage />
+    </div>
+  );
 }

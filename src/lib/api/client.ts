@@ -14,38 +14,98 @@ export async function apiClient<T>(
 
   const url = `${API_URL}${endpoint}`;
 
-  // console.log("=================================");
-  // console.log("API REQUEST");
-  // console.log("URL:", url);
-  // console.log("METHOD:", rest.method ?? "GET");
-  // console.log("=================================");
+  const requestHeaders = new Headers(headers);
 
-  const response = await fetch(url, {
-    ...rest,
+  // =========================================================
+  // Detect FormData
+  // =========================================================
+  const isFormData = rest.body instanceof FormData;
 
-    // VERY IMPORTANT
-    credentials: "include",
-
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-  });
-
- 
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-
-    throw new Error(
-      error?.message ||
-        `Request to ${url} failed with status ${response.status}`,
-    );
+  if (isFormData) {
+    // IMPORTANT:
+    // Do NOT manually set Content-Type for FormData.
+    //
+    // Browser automatically sets:
+    //
+    // multipart/form-data;
+    // boundary=----WebKitFormBoundary...
+    //
+    // This works for:
+    // - PNG
+    // - JPG / JPEG
+    // - PDF
+    // - DOCX
+    // - Any other allowed file type
+    requestHeaders.delete("Content-Type");
+  } else {
+    // Normal JSON request
+    requestHeaders.set("Content-Type", "application/json");
   }
 
+  // =========================================================
+  // Send request
+  // =========================================================
+  const response = await fetch(url, {
+    ...rest,
+    credentials: "include",
+    headers: requestHeaders,
+  });
+
+  // =========================================================
+  // Handle 204 No Content
+  // =========================================================
   if (response.status === 204) {
     return undefined as T;
   }
 
-  return response.json();
+  // =========================================================
+  // Read response safely
+  // =========================================================
+  const contentType =
+    response.headers.get("content-type") || "";
+
+  const isJson = contentType.includes("application/json");
+
+  let data: unknown;
+
+  if (isJson) {
+    data = await response.json().catch(() => null);
+  } else {
+    data = await response.text();
+  }
+
+  // =========================================================
+  // Handle errors
+  // =========================================================
+  if (!response.ok) {
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "message" in data
+    ) {
+      const message = (data as { message?: unknown }).message;
+
+      throw new Error(
+        typeof message === "string"
+          ? message
+          : `Request to ${url} failed with status ${response.status}`,
+      );
+    }
+
+    if (
+      typeof data === "string" &&
+      data.trim()
+    ) {
+      throw new Error(data);
+    }
+
+    throw new Error(
+      `Request to ${url} failed with status ${response.status}`,
+    );
+  }
+
+  // =========================================================
+  // Return response
+  // =========================================================
+  return data as T;
 }

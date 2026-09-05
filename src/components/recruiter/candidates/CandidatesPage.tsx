@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -36,13 +35,20 @@ import {
 } from "@/lib/api/candidates";
 
 import ParticleWave from "@/components/ui/particle-wave";
-import { Navbar } from "@/components/layout/navbar";
+
+/* ==========================================================
+   TYPES
+========================================================== */
+
+interface CandidateJob {
+  id: string;
+  title: string;
+}
 
 interface CandidatesPageProps {
-  jobs?: Array<{
-    id: string;
-    title: string;
-  }>;
+  jobs?: CandidateJob[];
+  jobsLoading?: boolean;
+  jobsError?: string | null;
 }
 
 type SortOption =
@@ -177,7 +183,13 @@ function normalizeSearch(
 
 export default function CandidatesPage({
   jobs = [],
+  jobsLoading = false,
+  jobsError = null,
 }: CandidatesPageProps) {
+  /* ========================================================
+     STATE
+  ======================================================== */
+
   const [candidates, setCandidates] =
     useState<Candidate[]>([]);
 
@@ -356,23 +368,17 @@ export default function CandidatesPage({
           (candidate) => {
             const name =
               normalizeSearch(
-                getCandidateName(
-                  candidate,
-                ),
+                getCandidateName(candidate),
               );
 
             const title =
               normalizeSearch(
-                getCandidateTitle(
-                  candidate,
-                ),
+                getCandidateTitle(candidate),
               );
 
             const candidateLocation =
               normalizeSearch(
-                getCandidateLocation(
-                  candidate,
-                ),
+                getCandidateLocation(candidate),
               );
 
             const candidateSkills =
@@ -396,13 +402,12 @@ export default function CandidatesPage({
             const score =
               getScore(match) ?? 0;
 
-            const searchableText =
-              [
-                name,
-                title,
-                candidateLocation,
-                ...candidateSkills,
-              ].join(" ");
+            const searchableText = [
+              name,
+              title,
+              candidateLocation,
+              ...candidateSkills,
+            ].join(" ");
 
             if (
               searchValue &&
@@ -452,43 +457,41 @@ export default function CandidatesPage({
           },
         );
 
-      return result.sort(
-        (a, b) => {
-          const aId =
-            getCandidateId(a);
+      return result.sort((a, b) => {
+        const aId =
+          getCandidateId(a);
 
-          const bId =
-            getCandidateId(b);
+        const bId =
+          getCandidateId(b);
 
-          const aMatch = aId
-            ? matchByCandidateId.get(aId)
-            : undefined;
+        const aMatch = aId
+          ? matchByCandidateId.get(aId)
+          : undefined;
 
-          const bMatch = bId
-            ? matchByCandidateId.get(bId)
-            : undefined;
+        const bMatch = bId
+          ? matchByCandidateId.get(bId)
+          : undefined;
 
-          if (sort === "name") {
-            return getCandidateName(
-              a,
-            ).localeCompare(
-              getCandidateName(b),
-            );
-          }
-
-          if (sort === "experience") {
-            return (
-              getExperience(b) -
-              getExperience(a)
-            );
-          }
-
-          return (
-            (getScore(bMatch) ?? -1) -
-            (getScore(aMatch) ?? -1)
+        if (sort === "name") {
+          return getCandidateName(
+            a,
+          ).localeCompare(
+            getCandidateName(b),
           );
-        },
-      );
+        }
+
+        if (sort === "experience") {
+          return (
+            getExperience(b) -
+            getExperience(a)
+          );
+        }
+
+        return (
+          (getScore(bMatch) ?? -1) -
+          (getScore(aMatch) ?? -1)
+        );
+      });
     }, [
       candidates,
       search,
@@ -515,6 +518,46 @@ export default function CandidatesPage({
     if (assistantMatches.length > 0) {
       setMatches(assistantMatches);
     }
+
+    setSort("match");
+  }
+
+  /* ==========================================================
+     JOB CHANGE
+  ========================================================== */
+
+  function handleJobChange(
+    jobId: string,
+  ) {
+    console.log(
+      "Selected job ID:",
+      jobId,
+    );
+
+    const selectedJob =
+      jobs.find(
+        (job) => job.id === jobId,
+      );
+
+    console.log(
+      "Selected job:",
+      selectedJob,
+    );
+
+    setSelectedJobId(jobId);
+
+    setMatches([]);
+    setMatchesLoading(false);
+
+    /*
+     * Close AI assistant when changing jobs.
+     */
+
+    setShowAssistant(false);
+
+    /*
+     * Reset sorting.
+     */
 
     setSort("match");
   }
@@ -561,8 +604,6 @@ export default function CandidatesPage({
         text-white
       "
     >
-        
-      
       {/* =====================================================
           PARTICLE BACKGROUND
       ===================================================== */}
@@ -580,9 +621,7 @@ export default function CandidatesPage({
       </div>
 
       {/* =====================================================
-          SUBTLE PAGE OVERLAY
-
-          Keeps text readable without hiding ParticleWave.
+          OVERLAY
       ===================================================== */}
 
       <div
@@ -594,8 +633,6 @@ export default function CandidatesPage({
           bg-slate-950/20
         "
       />
-          {/* Navbar */}
-
 
       {/* =====================================================
           CONTENT
@@ -651,6 +688,7 @@ export default function CandidatesPage({
                 "
               >
                 <Sparkles className="h-3.5 w-3.5" />
+
                 AI Talent Discovery
               </div>
 
@@ -683,6 +721,10 @@ export default function CandidatesPage({
               </p>
             </div>
 
+            {/* =================================================
+                REFRESH
+            ================================================= */}
+
             <Button
               type="button"
               variant="outline"
@@ -712,6 +754,7 @@ export default function CandidatesPage({
                     : ""
                 }`}
               />
+
               Refresh
             </Button>
           </div>
@@ -746,6 +789,8 @@ export default function CandidatesPage({
           "
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            {/* JOB ICON + DESCRIPTION */}
+
             <div className="flex items-center gap-3">
               <div
                 className="
@@ -776,11 +821,14 @@ export default function CandidatesPage({
               </div>
             </div>
 
+            {/* JOB DROPDOWN */}
+
             <div className="relative flex-1 lg:max-w-xl">
               <select
                 value={selectedJobId}
+                disabled={jobsLoading}
                 onChange={(event) =>
-                  setSelectedJobId(
+                  handleJobChange(
                     event.target.value,
                   )
                 }
@@ -803,14 +851,19 @@ export default function CandidatesPage({
                   focus:border-indigo-400/40
                   focus:ring-2
                   focus:ring-indigo-500/20
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
                 "
               >
                 <option
                   value=""
                   className="bg-slate-900 text-slate-200"
                 >
-                  All candidates — select a job for AI
-                  matching
+                  {jobsLoading
+                    ? "Loading your jobs..."
+                    : jobs.length === 0
+                      ? "No jobs available"
+                      : "Select a job"}
                 </option>
 
                 {jobs.map((job) => (
@@ -838,6 +891,8 @@ export default function CandidatesPage({
               />
             </div>
 
+            {/* SELECTED JOB STATUS */}
+
             {selectedJobId && (
               <div
                 className="
@@ -863,6 +918,59 @@ export default function CandidatesPage({
               </div>
             )}
           </div>
+
+          {/* JOB ERROR */}
+
+          {jobsError && (
+            <div
+              className="
+                mt-4
+                flex
+                items-start
+                gap-3
+                rounded-xl
+                border
+                border-red-400/20
+                bg-red-500/10
+                p-3
+              "
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+
+              <div>
+                <p className="text-xs font-semibold text-red-200">
+                  Unable to load jobs
+                </p>
+
+                <p className="mt-1 text-xs text-red-300/70">
+                  {jobsError}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* NO JOBS */}
+
+          {!jobsLoading &&
+            !jobsError &&
+            jobs.length === 0 && (
+              <div
+                className="
+                  mt-4
+                  rounded-xl
+                  border
+                  border-amber-400/20
+                  bg-amber-500/10
+                  p-3
+                  text-xs
+                  text-amber-200
+                "
+              >
+                You don&apos;t have any jobs yet.
+                Create a job first to use AI
+                candidate matching.
+              </div>
+            )}
         </motion.section>
 
         {/* ===================================================
@@ -956,19 +1064,33 @@ export default function CandidatesPage({
                   </p>
 
                   <p className="mt-1 text-xs text-slate-400">
-                    &quot;Show me the best 5 candidates
-                    for this React developer position&quot;
+                    &quot;Show me the best 5
+                    candidates for this position&quot;
                   </p>
+
+                  {selectedJob && (
+                    <p className="mt-1 text-xs text-indigo-300/80">
+                      Job: {selectedJob.title}
+                    </p>
+                  )}
                 </div>
 
-                <Search className="h-4 w-4 text-slate-400 transition-colors group-hover:text-indigo-300" />
+                <Search
+                  className="
+                    h-4
+                    w-4
+                    text-slate-400
+                    transition-colors
+                    group-hover:text-indigo-300
+                  "
+                />
               </button>
             )}
           </div>
         )}
 
         {/* ===================================================
-            ERROR
+            CANDIDATE ERROR
         =================================================== */}
 
         {error && (
@@ -1001,7 +1123,7 @@ export default function CandidatesPage({
         )}
 
         {/* ===================================================
-            CONTENT
+            MAIN CONTENT
         =================================================== */}
 
         <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
@@ -1012,22 +1134,16 @@ export default function CandidatesPage({
           <CandidateFilters
             search={search}
             location={location}
-            minExperience={
-              minExperience
-            }
+            minExperience={minExperience}
             skill={skill}
             minScore={minScore}
             onSearchChange={setSearch}
-            onLocationChange={
-              setLocation
-            }
+            onLocationChange={setLocation}
             onExperienceChange={
               setMinExperience
             }
             onSkillChange={setSkill}
-            onMinScoreChange={
-              setMinScore
-            }
+            onMinScoreChange={setMinScore}
             onClear={clearFilters}
           />
 
@@ -1068,6 +1184,8 @@ export default function CandidatesPage({
                     : "Browse all available candidates"}
                 </p>
               </div>
+
+              {/* SORT */}
 
               <div className="flex items-center gap-2">
                 <ArrowDownUp className="h-4 w-4 text-slate-400" />
@@ -1147,9 +1265,7 @@ export default function CandidatesPage({
               </div>
             ) : filteredCandidates.length ===
               0 ? (
-              /* ===============================================
-                 EMPTY STATE
-              =============================================== */
+              /* EMPTY */
 
               <div
                 className="
@@ -1198,9 +1314,7 @@ export default function CandidatesPage({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={
-                    clearFilters
-                  }
+                  onClick={clearFilters}
                   className="
                     mt-5
                     rounded-xl
@@ -1215,9 +1329,7 @@ export default function CandidatesPage({
                 </Button>
               </div>
             ) : (
-              /* ===============================================
-                 CANDIDATE GRID
-              =============================================== */
+              /* CANDIDATE GRID */
 
               <div className="grid gap-4 xl:grid-cols-2">
                 {filteredCandidates.map(
@@ -1243,9 +1355,7 @@ export default function CandidatesPage({
                           candidateId ??
                           `candidate-${index}`
                         }
-                        candidate={
-                          candidate
-                        }
+                        candidate={candidate}
                         match={match}
                         index={index}
                       />
@@ -1260,4 +1370,3 @@ export default function CandidatesPage({
     </main>
   );
 }
-
