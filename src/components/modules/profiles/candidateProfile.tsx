@@ -1,6 +1,7 @@
 
 "use client";
 
+
 import {
   ProfileUser,
   CandidateProfile as CandidateProfileData,
@@ -18,10 +19,12 @@ export default function CandidateProfile({
   candidateProfile,
 }: CandidateProfileProps) {
   return (
-    <ProfileView
+  <div className="mt-16">
+        <ProfileView
       user={user}
       candidateProfile={candidateProfile}
     />
+  </div>
   );
 }
 

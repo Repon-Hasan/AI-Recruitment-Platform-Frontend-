@@ -1,8 +1,10 @@
 
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
+
 import type { ReactNode } from "react";
+
 import Link from "next/link";
 
 import {
@@ -19,18 +21,23 @@ import {
 
 import { motion } from "motion/react";
 
-import type { Job, SkillGap, SkillGapResponse } from "@/types/job";
+import { toast } from "sonner";
+
+import type { Job } from "@/types/job";
 
 import {
+  useCalculateJobMatch,
   useJob,
   useJobMatch,
-  useSkillGap,
-  useMatchSummary,
+  useMyApplications,
 } from "../useJobs";
+
 import ApplyJobDialog from "../ApplyJobDialog";
+import { MyApplication } from "@/lib/api/jobs.api";
 
-
-
+/* =========================================================
+   PAGE TYPES
+========================================================= */
 
 interface PageProps {
   params: Promise<{
@@ -38,46 +45,130 @@ interface PageProps {
   }>;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default function JobDetailsPage({
   params,
 }: PageProps) {
-  /**
-   * Next.js provides params as a Promise.
-   *
-   * Because this is a Client Component, React's use()
-   * unwraps the Promise.
-   */
   const { jobId } = use(params);
 
-  /**
-   * jobId is now guaranteed to be a string.
-   */
+  /* -------------------------------------------------------
+     JOB
+  ------------------------------------------------------- */
+
   const {
     data: job,
     isLoading: jobLoading,
   } = useJob(jobId);
 
+  /* -------------------------------------------------------
+     MY APPLICATIONS
+  ------------------------------------------------------- */
+
   const {
-    data: match,
-    isLoading: matchLoading,
+    data: myApplications,
+    isLoading: applicationsLoading,
+  } = useMyApplications();
+
+  /* -------------------------------------------------------
+     EXISTING MATCH
+  ------------------------------------------------------- */
+
+  const {
+    data: existingMatch,
+    isLoading: existingMatchLoading,
   } = useJobMatch(jobId);
 
-  const {
-    data: skillGap,
-    isLoading: gapLoading,
-  } = useSkillGap(jobId);
+  /* -------------------------------------------------------
+     CALCULATE MATCH
+  ------------------------------------------------------- */
 
-  const {
-    data: summary,
-    isLoading: summaryLoading,
-  } = useMatchSummary(jobId);
+  const calculateMatch = useCalculateJobMatch();
 
+  /*
+   * Prevent duplicate calculation calls in React Strict Mode.
+   */
+  const calculationStarted = useRef(false);
+
+  useEffect(() => {
+    if (!jobId) return;
+
+    /*
+     * If an existing match already exists,
+     * there is no need to calculate again.
+     */
+    if (existingMatch) return;
+
+    /*
+     * Prevent duplicate mutation calls.
+     */
+    if (calculationStarted.current) return;
+
+    calculationStarted.current = true;
+
+    calculateMatch.mutate(jobId);
+  }, [
+    jobId,
+    existingMatch,
+    calculateMatch,
+  ]);
+
+  /* -------------------------------------------------------
+     APPLICATION STATUS
+  ------------------------------------------------------- */
+
+  /*
+   * Check whether the current candidate has already
+   * applied to this job.
+   *
+   * Supports both:
+   *
+   * 1. data = application[]
+   *
+   * 2. data = { applications: application[] }
+   *
+   * This keeps the page safe if your API service unwraps
+   * the response differently.
+   */
+
+const applications: MyApplication[] = Array.isArray(myApplications)
+  ? myApplications
+  : myApplications?.applications ?? [];
+
+const alreadyApplied = applications.some(
+  (application) => application.jobId === jobId,
+);
+
+  /* -------------------------------------------------------
+     MATCH DATA
+  ------------------------------------------------------- */
+
+  /*
+   * Prefer newly calculated match.
+   *
+   * If calculation has not completed yet, use the
+   * existing cached match if available.
+   */
+  const match =
+    calculateMatch.data ?? existingMatch;
+
+  const matchLoading =
+    existingMatchLoading ||
+    calculateMatch.isPending;
+
+  /* -------------------------------------------------------
+     LOADING
+  ------------------------------------------------------- */
 
   if (jobLoading) {
     return <JobDetailsSkeleton />;
   }
 
+  /* -------------------------------------------------------
+     JOB NOT FOUND
+  ------------------------------------------------------- */
 
   if (!job) {
     return (
@@ -98,17 +189,57 @@ export default function JobDetailsPage({
     );
   }
 
+  /* -------------------------------------------------------
+     MATCH SCORE
+  ------------------------------------------------------- */
 
   const score =
-    match?.score ??
-    match?.matchScore ??
-    0;
+    match?.overallMatchPercentage ?? 0;
 
+  /* -------------------------------------------------------
+     MATCHED SKILLS
+  ------------------------------------------------------- */
+
+  const matchedSkills =
+    match?.matchedSkills ?? [];
+
+  /* -------------------------------------------------------
+     MISSING SKILLS
+  ------------------------------------------------------- */
+
+  const missingHigh =
+    match?.missingSkills?.high ?? [];
+
+  const missingMedium =
+    match?.missingSkills?.medium ?? [];
+
+  const missingLow =
+    match?.missingSkills?.low ?? [];
+
+  const missingSkills = [
+    ...missingHigh,
+    ...missingMedium,
+    ...missingLow,
+  ];
+
+  /* -------------------------------------------------------
+     AI SUMMARY
+  ------------------------------------------------------- */
+
+  const aiRecommendation =
+    match?.recommendation ??
+    "AI analysis is being prepared for your profile.";
+
+  /* -------------------------------------------------------
+     RENDER
+  ------------------------------------------------------- */
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
 
-      {/* HEADER */}
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
       <section className="relative overflow-hidden border-b border-white/10">
 
@@ -121,12 +252,14 @@ export default function JobDetailsPage({
             className="mb-8 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-
             Back to jobs
           </Link>
 
-
           <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
+
+            {/* =================================================
+                JOB INFORMATION
+            ================================================= */}
 
             <motion.div
               initial={{
@@ -145,9 +278,10 @@ export default function JobDetailsPage({
               <div className="flex items-start gap-5">
 
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20">
-                  <BriefcaseBusiness className="h-8 w-8 text-blue-300" />
-                </div>
 
+                  <BriefcaseBusiness className="h-8 w-8 text-blue-300" />
+
+                </div>
 
                 <div>
 
@@ -164,7 +298,6 @@ export default function JobDetailsPage({
 
               </div>
 
-
               <div className="mt-8 flex flex-wrap gap-4">
 
                 {job.location && (
@@ -174,32 +307,29 @@ export default function JobDetailsPage({
                   />
                 )}
 
-
                 {job.employmentType && (
                   <InfoPill
                     icon={<BriefcaseBusiness />}
                     text={formatValue(
-                      job.employmentType
+                      job.employmentType,
                     )}
                   />
                 )}
-
 
                 {job.experienceLevel && (
                   <InfoPill
                     icon={<TrendingUp />}
                     text={formatValue(
-                      job.experienceLevel
+                      job.experienceLevel,
                     )}
                   />
                 )}
-
 
                 {job.deadline && (
                   <InfoPill
                     icon={<CalendarDays />}
                     text={`Deadline ${new Date(
-                      job.deadline
+                      job.deadline,
                     ).toLocaleDateString()}`}
                   />
                 )}
@@ -208,8 +338,9 @@ export default function JobDetailsPage({
 
             </motion.div>
 
-
-            {/* MATCH */}
+            {/* =================================================
+                MATCH SCORE
+            ================================================= */}
 
             <motion.div
               initial={{
@@ -239,16 +370,23 @@ export default function JobDetailsPage({
 
       </section>
 
-
-      {/* CONTENT */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
 
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 
         <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
 
-          {/* MAIN */}
+          {/* =================================================
+              MAIN
+          ================================================= */}
 
           <div className="space-y-10">
+
+            {/* =================================================
+                ABOUT
+            ================================================= */}
 
             <motion.section
               initial={{
@@ -268,7 +406,6 @@ export default function JobDetailsPage({
                 About this position
               </SectionTitle>
 
-
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7">
 
                 <p className="whitespace-pre-line leading-8 text-slate-300">
@@ -279,15 +416,15 @@ export default function JobDetailsPage({
 
             </motion.section>
 
-
-            {/* REQUIRED SKILLS */}
+            {/* =================================================
+                REQUIRED SKILLS
+            ================================================= */}
 
             <section>
 
               <SectionTitle>
                 Required skills
               </SectionTitle>
-
 
               <div className="grid gap-3 sm:grid-cols-2">
 
@@ -319,36 +456,41 @@ export default function JobDetailsPage({
 
                       </div>
 
-
                       <span className="text-xs capitalize text-slate-500">
-                        {skill.name || "Required"}
+                        {skill?.name ||
+                          "Required"}
                       </span>
 
                     </motion.div>
-                  )
+                  ),
                 )}
 
               </div>
 
             </section>
 
-
-            {/* AI SUMMARY */}
+            {/* =================================================
+                AI APPLICATION ANALYSIS
+            ================================================= */}
 
             <section>
 
               <SectionTitle>
+
                 <span className="flex items-center gap-2">
+
                   <Sparkles className="h-5 w-5 text-blue-400" />
 
                   AI application analysis
-                </span>
-              </SectionTitle>
 
+                </span>
+
+              </SectionTitle>
 
               <div className="rounded-2xl border border-blue-400/20 bg-blue-400/[0.05] p-7">
 
-                {summaryLoading ? (
+                {matchLoading ? (
+
                   <div className="space-y-3">
 
                     <div className="h-4 animate-pulse rounded bg-white/10" />
@@ -358,83 +500,116 @@ export default function JobDetailsPage({
                     <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
 
                   </div>
+
+                ) : calculateMatch.isError ? (
+
+                  <div className="text-sm text-amber-300">
+
+                    AI match analysis could not
+                    be calculated yet.
+
+                    <p className="mt-2 text-slate-400">
+
+                      Please make sure your profile
+                      has a resume with an available
+                      embedding.
+
+                    </p>
+
+                  </div>
+
                 ) : (
+
                   <>
 
                     <p className="leading-7 text-slate-300">
-                      {summary?.summary ||
-                        "AI analysis is being prepared for your profile."}
+                      {aiRecommendation}
                     </p>
 
+                    {/* =========================================
+                        MATCHED SKILLS
+                    ========================================= */}
 
-                    {summary?.strengths &&
-                      summary.strengths.length > 0 && (
-                        <div className="mt-7">
+                    {matchedSkills.length > 0 && (
 
-                          <h4 className="font-semibold">
-                            Your strengths
-                          </h4>
+                      <div className="mt-7">
 
+                        <h4 className="font-semibold">
+                          Your strengths
+                        </h4>
 
-                          <div className="mt-3 space-y-2">
+                        <div className="mt-3 space-y-2">
 
-                            {summary.strengths.map(
-                              (item) => (
-                                <div
-                                  key={item}
-                                  className="flex gap-2 text-sm text-slate-300"
-                                >
+                          {matchedSkills.map(
+                            (skill) => (
 
-                                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                              <div
+                                key={skill}
+                                className="flex gap-2 text-sm text-slate-300"
+                              >
 
-                                  {item}
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
 
-                                </div>
-                              )
-                            )}
+                                {skill}
 
-                          </div>
+                              </div>
+
+                            ),
+                          )}
 
                         </div>
-                      )}
 
+                      </div>
 
-                    {summary?.recommendations &&
-                      summary.recommendations.length > 0 && (
-                        <div className="mt-7">
+                    )}
 
-                          <h4 className="font-semibold">
-                            Recommendations
-                          </h4>
+                    {/* =========================================
+                        RECOMMENDATIONS
+                    ========================================= */}
 
+                    {missingSkills.length > 0 && (
 
-                          <div className="mt-3 space-y-2">
+                      <div className="mt-7">
 
-                            {summary.recommendations.map(
-                              (item) => (
+                        <h4 className="font-semibold">
+                          Recommendations
+                        </h4>
+
+                        <div className="mt-3 space-y-2">
+
+                          {missingSkills
+                            .slice(0, 5)
+                            .map(
+                              (skill) => (
+
                                 <div
-                                  key={item}
+                                  key={skill}
                                   className="text-sm text-slate-300"
                                 >
-                                  • {item}
+                                  • Improve your{" "}
+                                  {skill} skills
                                 </div>
-                              )
+
+                              ),
                             )}
 
-                          </div>
-
                         </div>
-                      )}
+
+                      </div>
+
+                    )}
 
                   </>
+
                 )}
 
               </div>
 
             </section>
 
-
-            {/* SKILL GAP */}
+            {/* =================================================
+                SKILL GAP
+            ================================================= */}
 
             <section>
 
@@ -442,22 +617,29 @@ export default function JobDetailsPage({
                 Skill gap analysis
               </SectionTitle>
 
-
               <SkillGapSection
-                skillGap={skillGap}
-                loading={gapLoading}
+                matchedSkills={matchedSkills}
+                missingHigh={missingHigh}
+                missingMedium={missingMedium}
+                missingLow={missingLow}
+                loading={matchLoading}
               />
 
             </section>
 
           </div>
 
-
-          {/* SIDEBAR */}
+          {/* =================================================
+              SIDEBAR
+          ================================================= */}
 
           <aside className="space-y-5">
 
             <div className="sticky top-24 space-y-5">
+
+              {/* ===============================================
+                  APPLICATION CARD
+              =============================================== */}
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -473,7 +655,6 @@ export default function JobDetailsPage({
 
                 </div>
 
-
                 <div className="mb-6 border-t border-white/10 pt-5">
 
                   <p className="text-sm text-slate-500">
@@ -481,23 +662,65 @@ export default function JobDetailsPage({
                   </p>
 
                   <p className="mt-1 font-medium">
+
                     {job.deadline
                       ? new Date(
-                          job.deadline
+                          job.deadline,
                         ).toLocaleDateString()
                       : "Open"}
+
                   </p>
 
                 </div>
 
+                {/* =============================================
+                    APPLY BUTTON
+                ============================================= */}
 
-                <ApplyJobDialog
-                  jobId={job.id}
-                  jobTitle={job.title}
-                />
+                {applicationsLoading ? (
+
+                  <button
+                    type="button"
+                    disabled
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white opacity-60"
+                  >
+                    Checking application...
+                  </button>
+
+                ) : alreadyApplied ? (
+
+                  <button
+                    type="button"
+                    aria-disabled="true"
+                    onClick={() => {
+                      toast.info(
+                        "You have already applied for this job.",
+                        {
+                          description:
+                            "You cannot submit another application for the same job.",
+                        },
+                      );
+                    }}
+                    className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3 font-semibold text-emerald-300 opacity-80"
+                  >
+                    <CheckCircle2 className="h-5 w-5" />
+                    Already Applied
+                  </button>
+
+                ) : (
+
+                  <ApplyJobDialog
+                    jobId={job.id}
+                    jobTitle={job.title}
+                  />
+
+                )}
 
               </div>
 
+              {/* ===============================================
+                  AI MATCHING INFORMATION
+              =============================================== */}
 
               <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-blue-500/10 to-violet-500/10 p-6">
 
@@ -507,17 +730,17 @@ export default function JobDetailsPage({
 
                 </div>
 
-
                 <h3 className="mt-4 font-semibold">
                   AI-powered matching
                 </h3>
 
-
                 <p className="mt-2 text-sm leading-6 text-slate-400">
+
                   Your profile is automatically
                   compared with this job&apos;s
                   requirements to identify your
                   strengths and skill gaps.
+
                 </p>
 
               </div>
@@ -534,11 +757,9 @@ export default function JobDetailsPage({
   );
 }
 
-
-/* ----------------------------- */
-/* Components */
-/* ----------------------------- */
-
+/* =========================================================
+   MATCH SCORE CARD
+========================================================= */
 
 function MatchScoreCard({
   score,
@@ -548,8 +769,13 @@ function MatchScoreCard({
   loading: boolean;
 }) {
   const normalizedScore =
-    Math.max(0, Math.min(100, score));
-
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(score) || 0,
+      ),
+    );
 
   return (
     <div className="rounded-3xl border border-blue-400/20 bg-blue-400/[0.05] p-7 backdrop-blur-xl">
@@ -562,10 +788,12 @@ function MatchScoreCard({
 
       </div>
 
-
       {loading ? (
+
         <div className="mt-5 h-20 animate-pulse rounded-xl bg-white/10" />
+
       ) : (
+
         <div className="mt-5 flex items-center gap-6">
 
           <div className="relative flex h-28 w-28 items-center justify-center rounded-full border-8 border-blue-400/20">
@@ -573,7 +801,7 @@ function MatchScoreCard({
             <div className="text-center">
 
               <div className="text-3xl font-bold">
-                {normalizedScore}%
+                {Math.round(normalizedScore)}%
               </div>
 
               <div className="text-[10px] uppercase tracking-wider text-slate-500">
@@ -584,37 +812,50 @@ function MatchScoreCard({
 
           </div>
 
-
           <div>
 
             <p className="font-semibold">
+
               {normalizedScore >= 80
                 ? "Excellent match"
                 : normalizedScore >= 60
                   ? "Good match"
                   : "Potential match"}
+
             </p>
 
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Based on your skills and
-              experience.
+
+              Based on your skills,
+              resume and job requirements.
+
             </p>
 
           </div>
 
         </div>
+
       )}
 
     </div>
   );
 }
 
+/* =========================================================
+   SKILL GAP SECTION
+========================================================= */
 
 function SkillGapSection({
-  skillGap,
+  matchedSkills,
+  missingHigh,
+  missingMedium,
+  missingLow,
   loading,
 }: {
-  skillGap: SkillGapResponse | undefined;
+  matchedSkills: string[];
+  missingHigh: string[];
+  missingMedium: string[];
+  missingLow: string[];
   loading: boolean;
 }) {
   if (loading) {
@@ -622,28 +863,46 @@ function SkillGapSection({
       <div className="space-y-3">
 
         {[1, 2, 3].map((item) => (
+
           <div
             key={item}
             className="h-16 animate-pulse rounded-xl bg-white/5"
           />
+
         ))}
 
       </div>
     );
   }
 
+  const hasMatched =
+    matchedSkills.length > 0;
 
-  const missing =
-    skillGap?.missingSkills || [];
+  const hasMissing =
+    missingHigh.length > 0 ||
+    missingMedium.length > 0 ||
+    missingLow.length > 0;
 
-  const matched =
-    skillGap?.skills || [];
+  if (!hasMatched && !hasMissing) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm text-slate-400">
 
+        AI skill-gap analysis is not
+        available yet.
+
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
 
-      {matched.length > 0 && (
+      {/* =====================================================
+          MATCHED SKILLS
+      ===================================================== */}
+
+      {hasMatched && (
+
         <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-6">
 
           <h3 className="flex items-center gap-2 font-semibold">
@@ -654,69 +913,125 @@ function SkillGapSection({
 
           </h3>
 
-
           <div className="mt-4 flex flex-wrap gap-2">
 
-            {matched.map(
+            {matchedSkills.map(
               (skill) => (
-                <span
-                  key={skill.currentLevel}
-                  className="rounded-lg bg-emerald-400/10 px-3 py-1.5 text-sm text-emerald-300"
-                >
-                  {skill.requiredLevel}
-                </span>
-              )
-            )}
 
-          </div>
-
-        </div>
-      )}
-
-
-      {missing.length > 0 && (
-        <div className="rounded-2xl border border-amber-400/10 bg-amber-400/[0.04] p-6">
-
-          <h3 className="flex items-center gap-2 font-semibold">
-
-            <XCircle className="h-5 w-5 text-amber-400" />
-
-            Skills to improve
-
-          </h3>
-
-
-          <div className="mt-4 flex flex-wrap gap-2">
-
-            {missing.map(
-              (skill) => (
                 <span
                   key={skill}
-                  className="rounded-lg bg-amber-400/10 px-3 py-1.5 text-sm text-amber-300"
+                  className="rounded-lg bg-emerald-400/10 px-3 py-1.5 text-sm text-emerald-300"
                 >
                   {skill}
                 </span>
-              )
+
+              ),
             )}
 
           </div>
 
         </div>
+
       )}
 
+      {/* =====================================================
+          HIGH PRIORITY
+      ===================================================== */}
 
-      {missing.length === 0 &&
-        matched.length === 0 && (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm text-slate-400">
-            AI skill-gap analysis is not
-            available yet.
-          </div>
-        )}
+      {missingHigh.length > 0 && (
+
+        <SkillPriorityBlock
+          title="High priority skills"
+          skills={missingHigh}
+          description="These skills are important for this position."
+        />
+
+      )}
+
+      {/* =====================================================
+          MEDIUM PRIORITY
+      ===================================================== */}
+
+      {missingMedium.length > 0 && (
+
+        <SkillPriorityBlock
+          title="Medium priority skills"
+          skills={missingMedium}
+          description="Improving these skills can strengthen your application."
+        />
+
+      )}
+
+      {/* =====================================================
+          LOW PRIORITY
+      ===================================================== */}
+
+      {missingLow.length > 0 && (
+
+        <SkillPriorityBlock
+          title="Skills to consider"
+          skills={missingLow}
+          description="These skills may further improve your profile."
+        />
+
+      )}
 
     </div>
   );
 }
 
+/* =========================================================
+   SKILL PRIORITY BLOCK
+========================================================= */
+
+function SkillPriorityBlock({
+  title,
+  skills,
+  description,
+}: {
+  title: string;
+  skills: string[];
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-amber-400/10 bg-amber-400/[0.04] p-6">
+
+      <h3 className="flex items-center gap-2 font-semibold">
+
+        <XCircle className="h-5 w-5 text-amber-400" />
+
+        {title}
+
+      </h3>
+
+      <p className="mt-2 text-sm text-slate-500">
+        {description}
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+
+        {skills.map(
+          (skill) => (
+
+            <span
+              key={skill}
+              className="rounded-lg bg-amber-400/10 px-3 py-1.5 text-sm text-amber-300"
+            >
+              {skill}
+            </span>
+
+          ),
+        )}
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   INFO PILL
+========================================================= */
 
 function InfoPill({
   icon,
@@ -738,6 +1053,9 @@ function InfoPill({
   );
 }
 
+/* =========================================================
+   SECTION TITLE
+========================================================= */
 
 function SectionTitle({
   children,
@@ -751,18 +1069,22 @@ function SectionTitle({
   );
 }
 
+/* =========================================================
+   FORMAT VALUE
+========================================================= */
 
-function formatValue(
-  value: string
-) {
+function formatValue(value: string) {
   return value
     .replaceAll("_", " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) =>
-      char.toUpperCase()
+      char.toUpperCase(),
     );
 }
 
+/* =========================================================
+   FORMAT SALARY
+========================================================= */
 
 function formatSalary(job: Job) {
   if (
@@ -772,10 +1094,8 @@ function formatSalary(job: Job) {
     return "Salary not disclosed";
   }
 
-
   const currency =
     job.salaryCurrency || "BDT";
-
 
   if (
     job.salaryMin != null &&
@@ -784,20 +1104,20 @@ function formatSalary(job: Job) {
     return `${currency} ${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()}`;
   }
 
-
   if (job.salaryMin != null) {
     return `${currency} ${job.salaryMin.toLocaleString()}`;
   }
-
 
   if (job.salaryMax != null) {
     return `${currency} ${job.salaryMax.toLocaleString()}`;
   }
 
-
   return "Salary not disclosed";
 }
 
+/* =========================================================
+   JOB DETAILS SKELETON
+========================================================= */
 
 function JobDetailsSkeleton() {
   return (
@@ -822,5 +1142,4 @@ function JobDetailsSkeleton() {
     </main>
   );
 }
-
 

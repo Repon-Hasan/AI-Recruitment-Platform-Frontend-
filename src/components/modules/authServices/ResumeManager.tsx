@@ -24,11 +24,15 @@ import {
   X,
 } from "lucide-react";
 
+import { toast } from "sonner";
+
 import {
   resumeApi,
   type Resume,
   type ResumeAnalysis,
 } from "@/lib/api/resume.api";
+
+import ParticleWave from "@/components/ui/particle-wave";
 
 interface ResumeManagerProps {
   open: boolean;
@@ -46,6 +50,7 @@ export default function ResumeManager({
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResume, setSelectedResume] =
     useState<Resume | null>(null);
+
   const [analysis, setAnalysis] =
     useState<ResumeAnalysis | null>(null);
 
@@ -62,88 +67,107 @@ export default function ResumeManager({
      Helpers
   ========================================================= */
 
-  const clearMessages = useCallback(() => {
+  const clearMessages = () => {
     setError("");
     setSuccess("");
-  }, []);
+  };
 
-  const getErrorMessage = useCallback(
-    (err: unknown, fallback: string): string => {
-      if (err instanceof Error && err.message) {
-        return err.message;
+  const getErrorMessage = (
+    error: unknown,
+    fallback: string,
+  ): string => {
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error
+    ) {
+      const message = (error as { message?: unknown }).message;
+
+      if (typeof message === "string" && message) {
+        return message;
       }
+    }
 
-      return fallback;
-    },
-    [],
-  );
+    return fallback;
+  };
 
   /* =========================================================
      Load Resumes
   ========================================================= */
 
-  const loadResumes = useCallback(async (): Promise<Resume[]> => {
-    try {
-      setLoading(true);
-      setError("");
+  const loadResumes = useCallback(
+    async (): Promise<Resume[]> => {
+      try {
+        setLoading(true);
+        setError("");
 
-      const response = await resumeApi.getMyResumes();
+        const response = await resumeApi.getMyResumes();
 
-      /*
-       * Backend response:
-       *
-       * {
-       *   success: true,
-       *   data: result
-       * }
-       *
-       * result = prisma.resume.findMany(...)
-       *
-       * Therefore response.data is the array directly.
-       */
+        /*
+         * Backend:
+         *
+         * {
+         *   success: true,
+         *   data: result
+         * }
+         *
+         * result = prisma.resume.findMany(...)
+         *
+         * Therefore response.data is the array directly.
+         */
 
-      const resumeList: Resume[] = Array.isArray(response.data)
-        ? response.data
-        : [];
+        const resumeList: Resume[] = Array.isArray(
+          response.data,
+        )
+          ? response.data
+          : [];
 
-      setResumes(resumeList);
+        setResumes(resumeList);
 
-      setSelectedResume((current) => {
-        if (resumeList.length === 0) {
-          return null;
-        }
+        setSelectedResume((current) => {
+          if (resumeList.length === 0) {
+            return null;
+          }
 
-        if (!current) {
-          return resumeList[0];
-        }
+          if (!current) {
+            return resumeList[0];
+          }
 
-        const updatedResume = resumeList.find(
-          (resume) => resume.id === current.id,
+          const updatedResume = resumeList.find(
+            (resume) => resume.id === current.id,
+          );
+
+          return updatedResume ?? resumeList[0];
+        });
+
+        return resumeList;
+      } catch (err) {
+        const message = getErrorMessage(
+          err,
+          "Failed to load resumes.",
         );
 
-        return updatedResume ?? resumeList[0];
-      });
+        setError(message);
+        toast.error(message);
 
-      return resumeList;
-    } catch (err) {
-      setError(
-        getErrorMessage(err, "Failed to load resumes."),
-      );
-
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [getErrorMessage]);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   /* =========================================================
      Load resumes when modal opens
   ========================================================= */
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const timer = window.setTimeout(() => {
       void loadResumes();
@@ -159,9 +183,7 @@ export default function ResumeManager({
   ========================================================= */
 
   useEffect(() => {
-    if (!error && !success) {
-      return;
-    }
+    if (!error && !success) return;
 
     const timer = window.setTimeout(() => {
       setError("");
@@ -177,20 +199,17 @@ export default function ResumeManager({
      Select Resume
   ========================================================= */
 
-  const handleSelectResume = useCallback(
-    (resume: Resume) => {
-      setSelectedResume(resume);
+  const handleSelectResume = (resume: Resume) => {
+    setSelectedResume(resume);
 
-      /*
-       * Analysis belongs to the selected resume.
-       * Clear previous resume's analysis immediately.
-       */
-      setAnalysis(null);
+    /*
+     * Analysis belongs to the selected resume.
+     * Clear the previous resume's analysis immediately.
+     */
+    setAnalysis(resume.analysis ?? null);
 
-      clearMessages();
-    },
-    [clearMessages],
-  );
+    clearMessages();
+  };
 
   /* =========================================================
      Upload Resume
@@ -198,12 +217,10 @@ export default function ResumeManager({
 
   const handleUpload = async (
     event: ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
+  ) => {
     const file = event.target.files?.[0];
 
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     clearMessages();
 
@@ -219,9 +236,11 @@ export default function ResumeManager({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setError(
-        "Only PDF and DOCX resume files are allowed.",
-      );
+      const message =
+        "Only PDF and DOCX resume files are allowed.";
+
+      setError(message);
+      toast.error(message);
 
       event.target.value = "";
       return;
@@ -230,9 +249,11 @@ export default function ResumeManager({
     const maxSize = 10 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      setError(
-        "Resume file must be smaller than 10MB.",
-      );
+      const message =
+        "Resume file must be smaller than 10MB.";
+
+      setError(message);
+      toast.error(message);
 
       event.target.value = "";
       return;
@@ -250,12 +271,15 @@ export default function ResumeManager({
        * field name = "resume"
        */
 
-      const response = await resumeApi.uploadResume(file);
+      const response =
+        await resumeApi.uploadResume(file);
 
-      setSuccess(
+      const successMessage =
         response.message ||
-          "Resume uploaded successfully.",
-      );
+        "Resume uploaded successfully.";
+
+      setSuccess(successMessage);
+      toast.success(successMessage);
 
       /*
        * Refresh list so the newly created resume
@@ -264,24 +288,29 @@ export default function ResumeManager({
       const refreshedResumes = await loadResumes();
 
       /*
-       * Usually the newly uploaded resume is first
-       * because the backend returns newest first.
+       * Select the newly uploaded resume.
+       *
+       * Backend normally returns the newest resume first.
        */
-      const uploadedResume = refreshedResumes[0];
+      const uploadedResume =
+        refreshedResumes[0];
 
       if (uploadedResume) {
         setSelectedResume(uploadedResume);
-        setAnalysis(uploadedResume?.analysis ?? null);
+        setAnalysis(
+          uploadedResume.analysis ?? null,
+        );
       }
 
       onResumeChange?.();
     } catch (err) {
-      setError(
-        getErrorMessage(
-          err,
-          "Failed to upload resume.",
-        ),
+      const message = getErrorMessage(
+        err,
+        "Failed to upload resume.",
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setUploading(false);
 
@@ -296,9 +325,13 @@ export default function ResumeManager({
      Analyze Resume
   ========================================================= */
 
-  const handleAnalyze = async (): Promise<void> => {
+  const handleAnalyze = async () => {
     if (!selectedResume) {
-      setError("Please select a resume first.");
+      const message =
+        "Please select a resume first.";
+
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -325,12 +358,10 @@ export default function ResumeManager({
       setAnalysis(result);
 
       /*
-       * Keep selected resume in sync.
+       * Keep the selected resume in sync.
        */
       setSelectedResume((current) => {
-        if (!current) {
-          return current;
-        }
+        if (!current) return current;
 
         return {
           ...current,
@@ -352,19 +383,22 @@ export default function ResumeManager({
         ),
       );
 
-      setSuccess(
+      const successMessage =
         response.message ||
-          "Resume analyzed successfully.",
-      );
+        "Resume analyzed successfully.";
+
+      setSuccess(successMessage);
+      toast.success(successMessage);
 
       onResumeChange?.();
     } catch (err) {
-      setError(
-        getErrorMessage(
-          err,
-          "Failed to analyze resume.",
-        ),
+      const message = getErrorMessage(
+        err,
+        "Failed to analyze resume.",
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setAnalyzing(false);
     }
@@ -374,9 +408,13 @@ export default function ResumeManager({
      Get Existing Analysis
   ========================================================= */
 
-  const handleGetAnalysis = async (): Promise<void> => {
+  const handleGetAnalysis = async () => {
     if (!selectedResume) {
-      setError("Please select a resume first.");
+      const message =
+        "Please select a resume first.";
+
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -402,22 +440,39 @@ export default function ResumeManager({
 
       setAnalysis(result);
 
+      /*
+       * Keep selected resume synchronized.
+       */
+      setSelectedResume((current) => {
+        if (!current) return current;
+
+        return {
+          ...current,
+          analysis: result,
+        };
+      });
+
       if (result) {
-        setSuccess(
-          "Resume analysis loaded successfully.",
-        );
+        const message =
+          "Resume analysis loaded successfully.";
+
+        setSuccess(message);
+        toast.success(message);
       } else {
-        setSuccess(
-          "No analysis has been generated for this resume yet.",
-        );
+        const message =
+          "No analysis has been generated for this resume yet.";
+
+        setSuccess(message);
+        toast.info(message);
       }
     } catch (err) {
-      setError(
-        getErrorMessage(
-          err,
-          "Failed to load resume analysis.",
-        ),
+      const message = getErrorMessage(
+        err,
+        "Failed to load resume analysis.",
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setAnalyzing(false);
     }
@@ -427,9 +482,13 @@ export default function ResumeManager({
      Ingest Resume
   ========================================================= */
 
-  const handleIngest = async (): Promise<void> => {
+  const handleIngest = async () => {
     if (!selectedResume) {
-      setError("Please select a resume first.");
+      const message =
+        "Please select a resume first.";
+
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -442,13 +501,13 @@ export default function ResumeManager({
        *
        * POST /resume/:resumeId/ingest
        *
-       * Creates:
+       * This creates:
        * - chunks
        * - embeddings
        * - records inside resume_chunks
        *
-       * The service currently returns Promise<void>,
-       * therefore response.data is not required.
+       * Service currently returns Promise<void>,
+       * so we don't depend on response.data.
        */
 
       const response =
@@ -456,17 +515,20 @@ export default function ResumeManager({
           selectedResume.id,
         );
 
-      setSuccess(
+      const successMessage =
         response.message ||
-          "Resume ingested successfully.",
-      );
+        "Resume ingested successfully.";
+
+      setSuccess(successMessage);
+      toast.success(successMessage);
     } catch (err) {
-      setError(
-        getErrorMessage(
-          err,
-          "Failed to ingest resume.",
-        ),
+      const message = getErrorMessage(
+        err,
+        "Failed to ingest resume.",
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setIngesting(false);
     }
@@ -476,10 +538,8 @@ export default function ResumeManager({
      Delete Resume
   ========================================================= */
 
-  const handleDelete = async (): Promise<void> => {
-    if (!selectedResume) {
-      return;
-    }
+  const handleDelete = async () => {
+    if (!selectedResume) return;
 
     const confirmed = window.confirm(
       `Are you sure you want to delete "${
@@ -487,9 +547,7 @@ export default function ResumeManager({
       }"?`,
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setDeleting(true);
@@ -509,10 +567,12 @@ export default function ResumeManager({
       setAnalysis(null);
       setSelectedResume(null);
 
-      setSuccess(
+      const successMessage =
         response.message ||
-          "Resume deleted successfully.",
-      );
+        "Resume deleted successfully.";
+
+      setSuccess(successMessage);
+      toast.success(successMessage);
 
       /*
        * Refresh remaining resumes.
@@ -521,12 +581,13 @@ export default function ResumeManager({
 
       onResumeChange?.();
     } catch (err) {
-      setError(
-        getErrorMessage(
-          err,
-          "Failed to delete resume.",
-        ),
+      const message = getErrorMessage(
+        err,
+        "Failed to delete resume.",
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setDeleting(false);
     }
@@ -536,7 +597,7 @@ export default function ResumeManager({
      Close modal
   ========================================================= */
 
-  const handleClose = (): void => {
+  const handleClose = () => {
     if (
       uploading ||
       analyzing ||
@@ -564,13 +625,17 @@ export default function ResumeManager({
   return (
     <div
       className="
+      mt-15
         fixed inset-0 z-50
         flex items-center justify-center
         bg-black/60 p-4
         backdrop-blur-sm
       "
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
           handleClose();
         }
       }}
@@ -579,212 +644,155 @@ export default function ResumeManager({
         className="
           relative flex
           max-h-[90vh]
+          min-h-[180px]
           w-full max-w-6xl
           flex-col
           overflow-hidden
           rounded-2xl
           border border-border
-          bg-background
+          bg-slate-950
           shadow-2xl
         "
       >
         {/* =================================================
-            Header
+            PARTICLE WAVE BACKGROUND
         ================================================= */}
 
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-
-              <h2 className="text-lg font-semibold">
-                Manage Resume
-              </h2>
-            </div>
-
-            <p className="mt-1 text-sm text-muted-foreground">
-              Upload, analyze, optimize and prepare
-              your resume for AI-powered matching.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={
-              uploading ||
-              analyzing ||
-              ingesting ||
-              deleting
-            }
-            className="
-              rounded-lg p-2
-              text-muted-foreground
-              transition
-              hover:bg-muted
-              hover:text-foreground
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
-            aria-label="Close resume manager"
-          >
-            <X className="h-5 w-5" />
-          </button>
+        <div className="absolute inset-0 z-40 pointer-events-none opacity-100">
+          <ParticleWave />
         </div>
 
         {/* =================================================
-            Messages
+            CONTENT LAYER
         ================================================= */}
 
-        {(error || success) && (
-          <div className="space-y-2 px-6 pt-4">
-            {error && (
-              <div
-                className="
-                  flex items-start gap-2
-                  rounded-xl
-                  border border-destructive/30
-                  bg-destructive/10
-                  px-4 py-3
-                  text-sm text-destructive
-                "
-              >
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div
-                className="
-                  flex items-start gap-2
-                  rounded-xl
-                  border border-green-500/30
-                  bg-green-500/10
-                  px-4 py-3
-                  text-sm text-green-600
-                "
-              >
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{success}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* =================================================
-            Main Content
-        ================================================= */}
-
-        <div
-          className="
-            grid flex-1
-            overflow-y-auto
-            md:grid-cols-[320px_minmax(0,1fr)]
-          "
-        >
+        <div className="relative z-50 flex min-h-0 flex-1 flex-col">
           {/* =================================================
-              LEFT — Resume List
+              Header
           ================================================= */}
 
-          <aside
-            className="
-              border-b border-border
-              p-5
-              md:border-b-0
-              md:border-r
-            "
-          >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="font-semibold">
-                  Your Resumes
-                </h3>
-
-                <p className="text-xs text-muted-foreground">
-                  {resumes.length}{" "}
-                  {resumes.length === 1
-                    ? "resume"
-                    : "resumes"}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
-                disabled={uploading}
-                className="
-                  flex items-center gap-2
-                  rounded-lg
-                  bg-primary
-                  px-3 py-2
-                  text-sm font-medium
-                  text-primary-foreground
-                  transition
-                  hover:opacity-90
-                  disabled:cursor-not-allowed
-                  disabled:opacity-50
-                "
-              >
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-
-                {uploading
-                  ? "Uploading..."
-                  : "Upload"}
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="hidden"
-                onChange={handleUpload}
-              />
-            </div>
-
-            {/* Loading */}
-
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <Loader2 className="h-7 w-7 animate-spin text-primary" />
-
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Loading resumes...
-                </p>
-              </div>
-            ) : resumes.length === 0 ? (
-              /* Empty */
-
-              <div
-                className="
-                  rounded-xl
-                  border border-dashed
-                  border-border
-                  p-6
-                  text-center
-                "
-              >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <FileText className="h-6 w-6 text-muted-foreground" />
+          <div className="flex items-center justify-between border-b border-border bg-background/95 px-6 py-4 backdrop-blur-sm">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-primary/10 p-2">
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
 
-                <p className="mt-4 text-sm font-semibold">
-                  No resume uploaded
-                </p>
+                <h2 className="text-lg font-semibold">
+                  Manage Resume
+                </h2>
+              </div>
 
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Upload a PDF or DOCX resume to
-                  analyze it and use it for
-                  AI-powered job matching.
-                </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload, analyze, optimize and prepare
+                your resume for AI-powered matching.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={
+                uploading ||
+                analyzing ||
+                ingesting ||
+                deleting
+              }
+              className="
+                rounded-lg p-2
+                text-muted-foreground
+                transition
+                hover:bg-muted
+                hover:text-foreground
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+              aria-label="Close resume manager"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* =================================================
+              Messages
+          ================================================= */}
+
+          {(error || success) && (
+            <div className="space-y-2 bg-background/95 px-6 pt-4 backdrop-blur-sm">
+              {error && (
+                <div
+                  className="
+                    flex items-start gap-2
+                    rounded-xl
+                    border border-destructive/30
+                    bg-destructive/10
+                    px-4 py-3
+                    text-sm text-destructive
+                  "
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div
+                  className="
+                    flex items-start gap-2
+                    rounded-xl
+                    border border-green-500/30
+                    bg-green-500/10
+                    px-4 py-3
+                    text-sm text-green-600
+                  "
+                >
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+
+                  <span>{success}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================
+              Main Content
+          ================================================= */}
+
+          <div
+            className="
+              grid min-h-0 flex-1
+              overflow-y-auto
+              bg-background/95
+              md:grid-cols-[320px_minmax(0,1fr)]
+              backdrop-blur-[2px]
+            "
+          >
+            {/* =================================================
+                LEFT — Resume List
+            ================================================= */}
+
+            <aside
+              className="
+                border-b border-border
+                p-5
+                md:border-b-0
+                md:border-r
+              "
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold">
+                    Your Resumes
+                  </h3>
+
+                  <p className="text-xs text-muted-foreground">
+                    {resumes.length}{" "}
+                    {resumes.length === 1
+                      ? "resume"
+                      : "resumes"}
+                  </p>
+                </div>
 
                 <button
                   type="button"
@@ -793,10 +801,10 @@ export default function ResumeManager({
                   }
                   disabled={uploading}
                   className="
-                    mt-4
+                    flex items-center gap-2
                     rounded-lg
                     bg-primary
-                    px-4 py-2
+                    px-3 py-2
                     text-sm font-medium
                     text-primary-foreground
                     transition
@@ -805,689 +813,769 @@ export default function ResumeManager({
                     disabled:opacity-50
                   "
                 >
-                  Upload Resume
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+
+                  {uploading
+                    ? "Uploading..."
+                    : "Upload"}
                 </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={handleUpload}
+                />
               </div>
-            ) : (
-              /* Resume List */
 
-              <div className="space-y-2">
-                {resumes.map((resume) => {
-                  const isSelected =
-                    selectedResume?.id === resume.id;
+              {/* Loading */}
 
-                  const hasAnalysis =
-                    Boolean(resume.analysis);
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="h-7 w-7 animate-spin text-primary" />
 
-                  return (
-                    <button
-                      key={resume.id}
-                      type="button"
-                      onClick={() =>
-                        handleSelectResume(resume)
-                      }
-                      className={`
-                        w-full
-                        rounded-xl
-                        border
-                        p-3
-                        text-left
-                        transition
-                        ${
-                          isSelected
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:bg-muted/50"
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Loading resumes...
+                  </p>
+                </div>
+              ) : resumes.length === 0 ? (
+                /* Empty */
+
+                <div
+                  className="
+                    rounded-xl
+                    border border-dashed
+                    border-border
+                    p-6
+                    text-center
+                  "
+                >
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  </div>
+
+                  <p className="mt-4 text-sm font-semibold">
+                    No resume uploaded
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Upload a PDF or DOCX resume to
+                    analyze it and use it for
+                    AI-powered job matching.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      fileInputRef.current?.click()
+                    }
+                    disabled={uploading}
+                    className="
+                      mt-4
+                      rounded-lg
+                      bg-primary
+                      px-4 py-2
+                      text-sm font-medium
+                      text-primary-foreground
+                      transition
+                      hover:opacity-90
+                    "
+                  >
+                    Upload Resume
+                  </button>
+                </div>
+              ) : (
+                /* Resume List */
+
+                <div className="space-y-2">
+                  {resumes.map((resume) => {
+                    const isSelected =
+                      selectedResume?.id ===
+                      resume.id;
+
+                    const hasAnalysis =
+                      Boolean(resume.analysis);
+
+                    return (
+                      <button
+                        key={resume.id}
+                        type="button"
+                        onClick={() =>
+                          handleSelectResume(
+                            resume,
+                          )
                         }
-                      `}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`
-                            rounded-lg
-                            p-2
-                            ${
-                              isSelected
-                                ? "bg-primary/10"
-                                : "bg-muted"
-                            }
-                          `}
-                        >
-                          <FileText
+                        className={`
+                          w-full
+                          rounded-xl
+                          border
+                          p-3
+                          text-left
+                          transition
+                          ${
+                            isSelected
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-border hover:bg-muted/50"
+                          }
+                        `}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
                             className={`
-                              h-5 w-5
+                              rounded-lg
+                              p-2
                               ${
                                 isSelected
-                                  ? "text-primary"
-                                  : "text-muted-foreground"
+                                  ? "bg-primary/10"
+                                  : "bg-muted"
                               }
                             `}
-                          />
+                          >
+                            <FileText
+                              className={`
+                                h-5 w-5
+                                ${
+                                  isSelected
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                                }
+                              `}
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium">
+                              {resume.fileName ??
+                                "Resume"}
+                            </p>
+
+                            {resume.createdAt && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Uploaded{" "}
+                                {new Date(
+                                  resume.createdAt,
+                                ).toLocaleDateString()}
+                              </p>
+                            )}
+
+                            {hasAnalysis && (
+                              <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-600">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Analyzed
+                              </span>
+                            )}
+                          </div>
+
+                          {isSelected && (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </aside>
+
+            {/* =================================================
+                RIGHT — Resume Details
+            ================================================= */}
+
+            <main className="min-w-0 p-6">
+              {!selectedResume ? (
+                <div className="flex min-h-[400px] items-center justify-center text-center">
+                  <div className="max-w-sm">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+
+                    <h3 className="mt-5 font-semibold">
+                      Select a resume
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Select an uploaded resume from
+                      the left panel to view its
+                      details, run AI analysis, or
+                      ingest it into the RAG system.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* =================================================
+                      Selected Resume
+                  ================================================= */}
+
+                  <section className="rounded-2xl border border-border bg-card p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="shrink-0 rounded-xl bg-primary/10 p-3">
+                          <FileText className="h-6 w-6 text-primary" />
                         </div>
 
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">
-                            {resume.fileName ??
+                        <div className="min-w-0">
+                          <h3 className="truncate font-semibold">
+                            {selectedResume.fileName ??
                               "Resume"}
+                          </h3>
+
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {selectedResume.fileType ??
+                              "Resume file"}
                           </p>
 
-                          {resume.createdAt && (
+                          {selectedResume.createdAt && (
                             <p className="mt-1 text-xs text-muted-foreground">
                               Uploaded{" "}
                               {new Date(
-                                resume.createdAt,
-                              ).toLocaleDateString()}
+                                selectedResume.createdAt,
+                              ).toLocaleString()}
                             </p>
                           )}
-
-                          {hasAnalysis && (
-                            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-600">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Analyzed
-                            </span>
-                          )}
                         </div>
+                      </div>
 
-                        {isSelected && (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={
+                          deleting ||
+                          uploading ||
+                          analyzing ||
+                          ingesting
+                        }
+                        className="
+                          shrink-0
+                          rounded-lg
+                          p-2
+                          text-destructive
+                          transition
+                          hover:bg-destructive/10
+                          disabled:cursor-not-allowed
+                          disabled:opacity-50
+                        "
+                        aria-label="Delete resume"
+                      >
+                        {deleting ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-5 w-5" />
                         )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </aside>
-
-          {/* =================================================
-              RIGHT — Resume Details
-          ================================================= */}
-
-          <main className="min-w-0 p-6">
-            {!selectedResume ? (
-              <div className="flex min-h-[400px] items-center justify-center text-center">
-                <div className="max-w-sm">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
-                  </div>
-
-                  <h3 className="mt-5 font-semibold">
-                    Select a resume
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Select an uploaded resume from
-                    the left panel to view its
-                    details, run AI analysis, or
-                    ingest it into the RAG system.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* =================================================
-                    Selected Resume
-                ================================================= */}
-
-                <section className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="shrink-0 rounded-xl bg-primary/10 p-3">
-                        <FileText className="h-6 w-6 text-primary" />
-                      </div>
-
-                      <div className="min-w-0">
-                        <h3 className="truncate font-semibold">
-                          {selectedResume.fileName ??
-                            "Resume"}
-                        </h3>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {selectedResume.fileType ??
-                            "Resume file"}
-                        </p>
-
-                        {selectedResume.createdAt && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Uploaded{" "}
-                            {new Date(
-                              selectedResume.createdAt,
-                            ).toLocaleString()}
-                          </p>
-                        )}
-                      </div>
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      disabled={
-                        deleting ||
-                        uploading ||
-                        analyzing ||
-                        ingesting
-                      }
-                      className="
-                        shrink-0
-                        rounded-lg
-                        p-2
-                        text-destructive
-                        transition
-                        hover:bg-destructive/10
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
-                      aria-label="Delete resume"
-                    >
-                      {deleting ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-5 w-5" />
+                    {/* Resume Metadata */}
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      {selectedResume.fileSize !=
+                        null && (
+                        <div className="rounded-xl bg-muted/50 p-3">
+                          <p className="text-xs text-muted-foreground">
+                            File Size
+                          </p>
+
+                          <p className="mt-1 text-sm font-medium">
+                            {(
+                              selectedResume.fileSize /
+                              (1024 * 1024)
+                            ).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        </div>
                       )}
-                    </button>
-                  </div>
 
-                  {/* Resume Metadata */}
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                    {selectedResume.fileSize != null && (
                       <div className="rounded-xl bg-muted/50 p-3">
                         <p className="text-xs text-muted-foreground">
-                          File Size
+                          Type
                         </p>
 
                         <p className="mt-1 text-sm font-medium">
-                          {(
-                            selectedResume.fileSize /
-                            (1024 * 1024)
-                          ).toFixed(2)}{" "}
-                          MB
+                          {selectedResume.fileType ===
+                          "application/pdf"
+                            ? "PDF"
+                            : "DOCX"}
                         </p>
                       </div>
+
+                      <div className="rounded-xl bg-muted/50 p-3">
+                        <p className="text-xs text-muted-foreground">
+                          AI Analysis
+                        </p>
+
+                        <p className="mt-1 text-sm font-medium">
+                          {selectedResume.analysis
+                            ? "Available"
+                            : "Not generated"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* View Resume */}
+
+                    {(selectedResume.fileUrl ||
+                      selectedResume.url) && (
+                      <a
+                        href={
+                          selectedResume.fileUrl ??
+                          selectedResume.url ??
+                          "#"
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          mt-5
+                          inline-flex
+                          items-center
+                          gap-2
+                          rounded-lg
+                          border
+                          border-border
+                          px-4 py-2
+                          text-sm
+                          font-medium
+                          transition
+                          hover:bg-muted
+                        "
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        View Resume
+                      </a>
                     )}
+                  </section>
 
-                    <div className="rounded-xl bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">
-                        Type
-                      </p>
+                  {/* =================================================
+                      AI Tools
+                  ================================================= */}
 
-                      <p className="mt-1 text-sm font-medium">
-                        {selectedResume.fileType ===
-                        "application/pdf"
-                          ? "PDF"
-                          : "DOCX"}
+                  <section className="mt-6">
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+
+                        <h3 className="font-semibold">
+                          AI Resume Tools
+                        </h3>
+                      </div>
+
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Analyze your resume or prepare
+                        it for semantic search and
+                        recruiter AI.
                       </p>
                     </div>
 
-                    <div className="rounded-xl bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">
-                        AI Analysis
-                      </p>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {/* Analyze */}
 
-                      <p className="mt-1 text-sm font-medium">
-                        {selectedResume.analysis
-                          ? "Available"
-                          : "Not generated"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* View Resume */}
-
-                  {(selectedResume.fileUrl ||
-                    selectedResume.url) && (
-                    <a
-                      href={
-                        selectedResume.fileUrl ??
-                        selectedResume.url ??
-                        "#"
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="
-                        mt-5
-                        inline-flex
-                        items-center
-                        gap-2
-                        rounded-lg
-                        border
-                        border-border
-                        px-4 py-2
-                        text-sm
-                        font-medium
-                        transition
-                        hover:bg-muted
-                      "
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      View Resume
-                    </a>
-                  )}
-                </section>
-
-                {/* =================================================
-                    AI Tools
-                ================================================= */}
-
-                <section className="mt-6">
-                  <div className="mb-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
-
-                      <h3 className="font-semibold">
-                        AI Resume Tools
-                      </h3>
-                    </div>
-
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Analyze your resume or prepare
-                      it for semantic search and
-                      recruiter AI.
-                    </p>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {/* Analyze */}
-
-                    <button
-                      type="button"
-                      onClick={handleAnalyze}
-                      disabled={
-                        analyzing ||
-                        ingesting ||
-                        deleting
-                      }
-                      className="
-                        group
-                        rounded-xl
-                        border border-border
-                        p-4
-                        text-left
-                        transition
-                        hover:border-primary/50
-                        hover:bg-primary/5
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="rounded-lg bg-primary/10 p-2">
-                          {analyzing ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          ) : (
-                            <Sparkles className="h-4 w-4 text-primary" />
-                          )}
-                        </div>
-
-                        <span className="text-xs text-muted-foreground">
-                          AI
-                        </span>
-                      </div>
-
-                      <p className="mt-3 text-sm font-semibold">
-                        Analyze Resume
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Generate an AI quality,
-                        skills and career analysis.
-                      </p>
-                    </button>
-
-                    {/* Existing Analysis */}
-
-                    <button
-                      type="button"
-                      onClick={handleGetAnalysis}
-                      disabled={
-                        analyzing ||
-                        ingesting ||
-                        deleting
-                      }
-                      className="
-                        group
-                        rounded-xl
-                        border border-border
-                        p-4
-                        text-left
-                        transition
-                        hover:border-primary/50
-                        hover:bg-primary/5
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="rounded-lg bg-blue-500/10 p-2">
-                          {analyzing ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                          ) : (
-                            <Brain className="h-4 w-4 text-blue-600" />
-                          )}
-                        </div>
-
-                        <span className="text-xs text-muted-foreground">
-                          Saved
-                        </span>
-                      </div>
-
-                      <p className="mt-3 text-sm font-semibold">
-                        View Analysis
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Load the analysis already
-                        stored for this resume.
-                      </p>
-                    </button>
-
-                    {/* Ingest */}
-
-                    <button
-                      type="button"
-                      onClick={handleIngest}
-                      disabled={
-                        ingesting ||
-                        analyzing ||
-                        deleting
-                      }
-                      className="
-                        group
-                        rounded-xl
-                        border border-border
-                        p-4
-                        text-left
-                        transition
-                        hover:border-primary/50
-                        hover:bg-primary/5
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="rounded-lg bg-violet-500/10 p-2">
-                          {ingesting ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-violet-600" />
-                          ) : (
-                            <RefreshCw className="h-4 w-4 text-violet-600" />
-                          )}
-                        </div>
-
-                        <span className="text-xs text-muted-foreground">
-                          RAG
-                        </span>
-                      </div>
-
-                      <p className="mt-3 text-sm font-semibold">
-                        Ingest Resume
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Chunk and embed the resume
-                        for semantic search.
-                      </p>
-                    </button>
-                  </div>
-                </section>
-
-                {/* =================================================
-                    Analysis
-                ================================================= */}
-
-                {analysis && (
-                  <section className="mt-6 rounded-2xl border border-border bg-card p-5">
-                    {/* Header */}
-
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAnalyze}
+                        disabled={
+                          analyzing ||
+                          ingesting ||
+                          deleting
+                        }
+                        className="
+                          group
+                          rounded-xl
+                          border border-border
+                          p-4
+                          text-left
+                          transition
+                          hover:border-primary/50
+                          hover:bg-primary/5
+                          disabled:cursor-not-allowed
+                          disabled:opacity-50
+                        "
+                      >
+                        <div className="flex items-center justify-between">
                           <div className="rounded-lg bg-primary/10 p-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
+                            {analyzing ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            ) : (
+                              <Sparkles className="h-4 w-4 text-primary" />
+                            )}
                           </div>
 
-                          <div>
-                            <h3 className="font-semibold">
-                              Resume Analysis
-                            </h3>
+                          <span className="text-xs text-muted-foreground">
+                            AI
+                          </span>
+                        </div>
 
-                            <p className="text-xs text-muted-foreground">
-                              AI-generated resume
-                              evaluation
+                        <p className="mt-3 text-sm font-semibold">
+                          Analyze Resume
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Generate an AI quality,
+                          skills and career analysis.
+                        </p>
+                      </button>
+
+                      {/* Existing Analysis */}
+
+                      <button
+                        type="button"
+                        onClick={handleGetAnalysis}
+                        disabled={
+                          analyzing ||
+                          ingesting ||
+                          deleting
+                        }
+                        className="
+                          group
+                          rounded-xl
+                          border border-border
+                          p-4
+                          text-left
+                          transition
+                          hover:border-primary/50
+                          hover:bg-primary/5
+                          disabled:cursor-not-allowed
+                          disabled:opacity-50
+                        "
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="rounded-lg bg-blue-500/10 p-2">
+                            {analyzing ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                            ) : (
+                              <Brain className="h-4 w-4 text-blue-600" />
+                            )}
+                          </div>
+
+                          <span className="text-xs text-muted-foreground">
+                            Saved
+                          </span>
+                        </div>
+
+                        <p className="mt-3 text-sm font-semibold">
+                          View Analysis
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Load the analysis already
+                          stored for this resume.
+                        </p>
+                      </button>
+
+                      {/* Ingest */}
+
+                      <button
+                        type="button"
+                        onClick={handleIngest}
+                        disabled={
+                          ingesting ||
+                          analyzing ||
+                          deleting
+                        }
+                        className="
+                          group
+                          rounded-xl
+                          border border-border
+                          p-4
+                          text-left
+                          transition
+                          hover:border-primary/50
+                          hover:bg-primary/5
+                          disabled:cursor-not-allowed
+                          disabled:opacity-50
+                        "
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="rounded-lg bg-violet-500/10 p-2">
+                            {ingesting ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-violet-600" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4 text-violet-600" />
+                            )}
+                          </div>
+
+                          <span className="text-xs text-muted-foreground">
+                            RAG
+                          </span>
+                        </div>
+
+                        <p className="mt-3 text-sm font-semibold">
+                          Ingest Resume
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Chunk and embed the resume
+                          for semantic search.
+                        </p>
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* =================================================
+                      Analysis
+                  ================================================= */}
+
+                  {analysis && (
+                    <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+                      {/* Header */}
+
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="rounded-lg bg-primary/10 p-2">
+                              <Sparkles className="h-5 w-5 text-primary" />
+                            </div>
+
+                            <div>
+                              <h3 className="font-semibold">
+                                Resume Analysis
+                              </h3>
+
+                              <p className="text-xs text-muted-foreground">
+                                AI-generated resume
+                                evaluation
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {typeof analysis.overallScore ===
+                          "number" && (
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-primary">
+                              {analysis.overallScore}
+                            </p>
+
+                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                              Overall Score
                             </p>
                           </div>
-                        </div>
+                        )}
                       </div>
+
+                      {/* Overall Score */}
 
                       {typeof analysis.overallScore ===
                         "number" && (
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-primary">
-                            {analysis.overallScore}
-                          </p>
+                        <div className="mt-5">
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Resume Quality
+                            </span>
 
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            Overall Score
-                          </p>
+                            <span className="text-sm font-semibold">
+                              {analysis.overallScore}%
+                            </span>
+                          </div>
+
+                          <div className="h-2 overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  Math.max(
+                                    0,
+                                    analysis.overallScore,
+                                  ),
+                                )}%`,
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    {/* Overall Score */}
+                      {/* Score Cards */}
 
-                    {typeof analysis.overallScore ===
-                      "number" && (
-                      <div className="mt-5">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            Resume Quality
-                          </span>
+                      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+                        <ScoreCard
+                          label="Skills"
+                          value={
+                            analysis.skillsScore
+                          }
+                        />
 
-                          <span className="text-sm font-semibold">
-                            {analysis.overallScore}%
-                          </span>
-                        </div>
+                        <ScoreCard
+                          label="Experience"
+                          value={
+                            analysis.experienceScore
+                          }
+                        />
 
-                        <div className="h-2 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-primary transition-all"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  analysis.overallScore,
-                                ),
-                              )}%`,
-                            }}
-                          />
-                        </div>
+                        <ScoreCard
+                          label="Education"
+                          value={
+                            analysis.educationScore
+                          }
+                        />
+
+                        <ScoreCard
+                          label="Projects"
+                          value={
+                            analysis.projectsScore
+                          }
+                        />
+
+                        <ScoreCard
+                          label="Certifications"
+                          value={
+                            analysis.certificationsScore
+                          }
+                        />
                       </div>
-                    )}
 
-                    {/* Score Cards */}
+                      {/* Summary */}
 
-                    <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-                      <ScoreCard
-                        label="Skills"
-                        value={analysis.skillsScore}
-                      />
-
-                      <ScoreCard
-                        label="Experience"
-                        value={
-                          analysis.experienceScore
-                        }
-                      />
-
-                      <ScoreCard
-                        label="Education"
-                        value={
-                          analysis.educationScore
-                        }
-                      />
-
-                      <ScoreCard
-                        label="Projects"
-                        value={
-                          analysis.projectsScore
-                        }
-                      />
-
-                      <ScoreCard
-                        label="Certifications"
-                        value={
-                          analysis.certificationsScore
-                        }
-                      />
-                    </div>
-
-                    {/* Summary */}
-
-                    {analysis.summary && (
-                      <AnalysisSection title="Summary">
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          {analysis.summary}
-                        </p>
-                      </AnalysisSection>
-                    )}
-
-                    {/* Skills */}
-
-                    {analysis.skills &&
-                      analysis.skills.length > 0 && (
-                        <AnalysisSection title="Skills">
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.skills.map(
-                              (
-                                skill,
-                                index,
-                              ) => (
-                                <span
-                                  key={`${skill}-${index}`}
-                                  className="
-                                    rounded-full
-                                    border
-                                    border-border
-                                    bg-muted/50
-                                    px-3 py-1
-                                    text-xs
-                                    font-medium
-                                  "
-                                >
-                                  {skill}
-                                </span>
-                              ),
-                            )}
-                          </div>
+                      {analysis.summary && (
+                        <AnalysisSection title="Summary">
+                          <p className="text-sm leading-6 text-muted-foreground">
+                            {analysis.summary}
+                          </p>
                         </AnalysisSection>
                       )}
 
-                    {/* Strengths */}
+                      {/* Skills */}
 
-                    {analysis.strengths &&
-                      analysis.strengths.length >
-                        0 && (
-                        <AnalysisSection title="Strengths">
-                          <BulletList
-                            items={
-                              analysis.strengths
-                            }
-                          />
-                        </AnalysisSection>
-                      )}
+                      {analysis.skills &&
+                        analysis.skills.length > 0 && (
+                          <AnalysisSection title="Skills">
+                            <div className="flex flex-wrap gap-2">
+                              {analysis.skills.map(
+                                (
+                                  skill,
+                                  index,
+                                ) => (
+                                  <span
+                                    key={`${skill}-${index}`}
+                                    className="
+                                      rounded-full
+                                      border
+                                      border-border
+                                      bg-muted/50
+                                      px-3 py-1
+                                      text-xs
+                                      font-medium
+                                    "
+                                  >
+                                    {skill}
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          </AnalysisSection>
+                        )}
 
-                    {/* Weaknesses */}
+                      {/* Strengths */}
 
-                    {analysis.weaknesses &&
-                      analysis.weaknesses.length >
-                        0 && (
-                        <AnalysisSection title="Areas to Improve">
-                          <BulletList
-                            items={
-                              analysis.weaknesses
-                            }
-                          />
-                        </AnalysisSection>
-                      )}
+                      {analysis.strengths &&
+                        analysis.strengths.length >
+                          0 && (
+                          <AnalysisSection title="Strengths">
+                            <BulletList
+                              items={
+                                analysis.strengths
+                              }
+                            />
+                          </AnalysisSection>
+                        )}
 
-                    {/* Suggestions */}
+                      {/* Weaknesses */}
 
-                    {analysis.suggestions &&
-                      analysis.suggestions.length >
-                        0 && (
-                        <AnalysisSection title="Suggestions">
-                          <BulletList
-                            items={
-                              analysis.suggestions
-                            }
-                          />
-                        </AnalysisSection>
-                      )}
+                      {analysis.weaknesses &&
+                        analysis.weaknesses.length >
+                          0 && (
+                          <AnalysisSection title="Areas to Improve">
+                            <BulletList
+                              items={
+                                analysis.weaknesses
+                              }
+                            />
+                          </AnalysisSection>
+                        )}
 
-                    {/* Missing Skills */}
+                      {/* Suggestions */}
 
-                    {analysis.missingSkills &&
-                      analysis.missingSkills?.length >
-                        0 && (
-                        <AnalysisSection title="Missing Skills">
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.missingSkills?.map(
-                              (
-                                skill:string,
-                                index:number,
-                              ) => (
-                                <span
-                                  key={`${skill}-${index}`}
-                                  className="
-                                    rounded-full
-                                    border
-                                    border-orange-500/20
-                                    bg-orange-500/10
-                                    px-3 py-1
-                                    text-xs
-                                    text-orange-600
-                                  "
-                                >
-                                  {skill}
-                                </span>
-                              ),
-                            )}
-                          </div>
-                        </AnalysisSection>
-                      )}
-                  </section>
-                )}
-              </>
-            )}
-          </main>
-        </div>
+                      {analysis.suggestions &&
+                        analysis.suggestions.length >
+                          0 && (
+                          <AnalysisSection title="Suggestions">
+                            <BulletList
+                              items={
+                                analysis.suggestions
+                              }
+                            />
+                          </AnalysisSection>
+                        )}
 
-        {/* =================================================
-            Footer
-        ================================================= */}
+                      {/* Missing Skills */}
 
-        <div className="flex justify-end border-t border-border px-6 py-4">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={
-              uploading ||
-              analyzing ||
-              ingesting ||
-              deleting
-            }
-            className="
-              rounded-lg
-              border border-border
-              px-4 py-2
-              text-sm font-medium
-              transition
-              hover:bg-muted
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
-          >
-            Close
-          </button>
+                      {analysis.missingSkills &&
+                        analysis.missingSkills.length >
+                          0 && (
+                          <AnalysisSection title="Missing Skills">
+                            <div className="flex flex-wrap gap-2">
+                              {analysis.missingSkills.map(
+                                (
+                                  skill,
+                                  index,
+                                ) => (
+                                  <span
+                                    key={`${skill}-${index}`}
+                                    className="
+                                      rounded-full
+                                      border
+                                      border-orange-500/20
+                                      bg-orange-500/10
+                                      px-3 py-1
+                                      text-xs
+                                      text-orange-600
+                                    "
+                                  >
+                                    {skill}
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          </AnalysisSection>
+                        )}
+                    </section>
+                  )}
+                </>
+              )}
+            </main>
+          </div>
+
+          {/* =================================================
+              Footer
+          ================================================= */}
+
+          <div className="flex justify-end border-t border-border bg-background/95 px-6 py-4 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={
+                uploading ||
+                analyzing ||
+                ingesting ||
+                deleting
+              }
+              className="
+                rounded-lg
+                border border-border
+                px-4 py-2
+                text-sm font-medium
+                transition
+                hover:bg-muted
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1573,6 +1661,7 @@ function BulletList({
           "
         >
           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+
           <span>{item}</span>
         </li>
       ))}

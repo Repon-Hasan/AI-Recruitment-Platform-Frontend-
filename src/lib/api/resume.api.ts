@@ -219,4 +219,14 @@ method: "POST",
 },
 );
 },
+
+askRecruiterAI: async (question: string) => {
+  return apiClient<ApiResponse<unknown>>(
+    `${BASE_URL}/ask`,
+    {
+      method: "POST",
+      body: JSON.stringify({ question }),
+    },
+  );
+},
 };
