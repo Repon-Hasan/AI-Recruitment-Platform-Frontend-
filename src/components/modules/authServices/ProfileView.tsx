@@ -73,7 +73,7 @@ interface ScoreItemProps {
   score: number;
   icon: ReactNode;
 }
-
+export interface CandidateProfile { id: string; userId: string; phone?: string | null; location?: string | null; bio?: string | null; experience?: string | null; linkedin?: string | null; github?: string | null; portfolio?: string | null; createdAt: string; updatedAt: string; certifications: CandidateCertification[]; education: CandidateEducation[]; projects: CandidateProject[]; }
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -1651,7 +1651,7 @@ function ScoreCard({
   icon,
 }: ScoreItemProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm backdrop-blur">
+    <div className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm backdrop-blur ">
       <div className="flex items-center justify-between">
         <div className="rounded-lg bg-primary/10 p-2 text-primary">
           {icon}

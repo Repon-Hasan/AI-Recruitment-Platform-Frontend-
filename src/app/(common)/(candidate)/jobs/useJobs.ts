@@ -8,7 +8,7 @@ import {
   getJob,
   getJobs,
   getMatchSummary,
-  getMyApplication,
+  getMyApplicationById,
   getMyApplications,
   getSkillGap,
   searchJobs,
@@ -232,10 +232,6 @@ export function useApplyToJob() {
   });
 }
 
-// =====================================================
-// Get My Applications
-// =====================================================
-
 export function useMyApplications() {
   return useQuery({
     queryKey: ["my-applications"],
@@ -250,7 +246,7 @@ export function useMyApplications() {
 export function useMyApplication(applicationId: string) {
   return useQuery({
     queryKey: ["my-application", applicationId],
-    queryFn: () => getMyApplication(applicationId),
+    queryFn: () => getMyApplicationById(applicationId),
     enabled: !!applicationId,
   });
 }
@@ -266,23 +262,17 @@ export function useDeleteMyApplication() {
     mutationFn: deleteMyApplication,
 
     onSuccess: (_data, applicationId) => {
-      // Refresh application list
       queryClient.invalidateQueries({
         queryKey: ["my-applications"],
       });
 
-      // Remove deleted application from cache
       queryClient.removeQueries({
         queryKey: ["my-application", applicationId],
       });
 
-      // Refresh jobs
       queryClient.invalidateQueries({
         queryKey: ["jobs"],
       });
-
-      // Refresh specific application-related job cache if needed
-      // This is optional because we don't have jobId here.
     },
   });
 }

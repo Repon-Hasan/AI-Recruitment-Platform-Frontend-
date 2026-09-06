@@ -420,6 +420,7 @@ export async function applyToJob(payload: {
     },
   );
 }
+
 export interface MyApplication {
   id: string;
   candidateProfileId: string;
@@ -429,18 +430,21 @@ export interface MyApplication {
   createdAt: string;
   updatedAt: string;
 }
+
 export interface MyApplicationsResponse {
-  applications: MyApplication[];
+  success: boolean;
+  message: string;
+  data: MyApplication[];
 }
-export async function getMyApplications(): Promise<MyApplicationsResponse> {
+
+
+export async function getMyApplications(): Promise<MyApplication> {
   return apiClient("/api/v1/candidate/my/application", {
     method: "GET",
   });
 }
 
- 
-
-export async function getMyApplication(applicationId: string): Promise<MyApplicationsResponse> {
+export async function getMyApplicationById(applicationId: string): Promise<MyApplication> {
   if (!applicationId) {
     throw new Error("Application ID is required");
   }
