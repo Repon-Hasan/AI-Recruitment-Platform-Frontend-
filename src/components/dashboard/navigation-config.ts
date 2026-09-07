@@ -65,15 +65,9 @@ export const navigation: Record<UserRole, NavigationGroup[]> = {
           icon: FileText,
         },
         {
-          label: "Job Matches",
-          href: "/candidate/matches",
+          label: "Interview Practices",
+          href: "/candidate/practices",
           icon: Target,
-          badge: "AI",
-        },
-        {
-          label: "AI Interview",
-          href: "/candidate/ai-interview",
-          icon: Video,
           badge: "AI",
         },
       ],
@@ -84,7 +78,7 @@ export const navigation: Record<UserRole, NavigationGroup[]> = {
       items: [
         {
           label: "Messages",
-          href: "/candidate/messages",
+          href: "/candidate/messageCandidate",
           icon: MessageSquare,
         },
         {

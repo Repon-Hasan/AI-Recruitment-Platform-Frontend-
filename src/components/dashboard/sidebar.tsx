@@ -1,7 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import {
   ChevronRight,
   LogOut,
@@ -33,6 +36,14 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
+  // Prevent hydration mismatch between server and client
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Keep the same navigation configuration
   const navGroups = navigation[role];
 
   return (
@@ -65,65 +76,66 @@ export function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <div className="space-y-7">
-          {navGroups.map((group) => (
-            <div key={group.title}>
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                {group.title}
-              </p>
+          {mounted &&
+            navGroups.map((group) => (
+              <div key={group.title}>
+                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  {group.title}
+                </p>
 
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
 
-                  const isActive =
-                    pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`);
+                    const isActive =
+                      pathname === item.href ||
+                      pathname.startsWith(`${item.href}/`);
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onNavigate}
-                      className={`
-                        group flex items-center gap-3 rounded-xl px-3 py-2.5
-                        text-sm font-medium transition-all
-                        ${
-                          isActive
-                            ? "bg-primary/10 text-primary shadow-sm"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }
-                      `}
-                    >
-                      <Icon
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onNavigate}
                         className={`
-                          h-[18px] w-[18px] shrink-0
+                          group flex items-center gap-3 rounded-xl px-3 py-2.5
+                          text-sm font-medium transition-all
                           ${
                             isActive
-                              ? "text-primary"
-                              : "text-muted-foreground group-hover:text-foreground"
+                              ? "bg-primary/10 text-primary shadow-sm"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
-                      />
+                      >
+                        <Icon
+                          className={`
+                            h-[18px] w-[18px] shrink-0
+                            ${
+                              isActive
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-foreground"
+                            }
+                          `}
+                        />
 
-                      <span className="flex-1 truncate">
-                        {item.label}
-                      </span>
-
-                      {item.badge && (
-                        <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
-                          {item.badge}
+                        <span className="flex-1 truncate">
+                          {item.label}
                         </span>
-                      )}
 
-                      {isActive && (
-                        <ChevronRight className="h-4 w-4 text-primary" />
-                      )}
-                    </Link>
-                  );
-                })}
+                        {item.badge && (
+                          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
+                            {item.badge}
+                          </span>
+                        )}
+
+                        {isActive && (
+                          <ChevronRight className="h-4 w-4 text-primary" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </nav>
 
@@ -167,3 +179,4 @@ export function Sidebar({
     </aside>
   );
 }
+
