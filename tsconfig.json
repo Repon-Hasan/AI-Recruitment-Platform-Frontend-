@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "src/app/(common)/(candidate)/messageCandidate"  ],
   "exclude": ["node_modules"]
 }

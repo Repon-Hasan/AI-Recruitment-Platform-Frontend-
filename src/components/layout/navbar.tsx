@@ -91,7 +91,7 @@ const candidateNavigation = [
   },
   {
     name: "Messages",
-    href: "/messages",
+    href: "/messageCandidate",
     icon: MessageCircle,
   },
 ];
