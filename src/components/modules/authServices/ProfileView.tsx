@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -28,7 +29,7 @@ import {
   X,
 } from "lucide-react";
 
-import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 import {
   candidateProfileApi,
@@ -40,9 +41,6 @@ import {
 
 import ResumeManager from "./ResumeManager";
 import ParticleWave from "@/components/ui/particle-wave";
-
-// Change this import to the actual location of your animation.
-
 
 /* =========================================================
    TYPES
@@ -73,7 +71,24 @@ interface ScoreItemProps {
   score: number;
   icon: ReactNode;
 }
-export interface CandidateProfile { id: string; userId: string; phone?: string | null; location?: string | null; bio?: string | null; experience?: string | null; linkedin?: string | null; github?: string | null; portfolio?: string | null; createdAt: string; updatedAt: string; certifications: CandidateCertification[]; education: CandidateEducation[]; projects: CandidateProject[]; }
+
+export interface CandidateProfile {
+  id: string;
+  userId: string;
+  phone?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  experience?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+  portfolio?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  certifications: CandidateCertification[];
+  education: CandidateEducation[];
+  projects: CandidateProject[];
+}
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -590,7 +605,11 @@ export default function ProfileView({
       try {
         setSaving(true);
         setError("");
-           console.log("CERTIFICATION DATA:", data);
+
+        console.log(
+          "CERTIFICATION DATA:",
+          data,
+        );
 
         if (editingCertification?.id) {
           await candidateProfileApi.updateCertification(
@@ -675,7 +694,7 @@ export default function ProfileView({
 
   if (loading && !profile) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center">
+      <div className="flex min-h-[70vh] items-center justify-center bg-slate-950">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
 
@@ -707,7 +726,22 @@ export default function ProfileView({
   ======================================================= */
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 text-white">
+      {/* =====================================================
+          RECRUITER STYLE BACKGROUND
+      ===================================================== */}
+
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Left Indigo Glow */}
+        <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+        {/* Right Purple Glow */}
+        <div className="absolute right-[-10rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+        {/* Top Radial Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.08),transparent_35%)]" />
+      </div>
+
       {/* =====================================================
           WAVE BACKGROUND
       ===================================================== */}
@@ -715,6 +749,10 @@ export default function ProfileView({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden opacity-30">
         <ParticleWave />
       </div>
+
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* ===================================================
@@ -724,7 +762,7 @@ export default function ProfileView({
         {(error || success) && (
           <div className="mb-5">
             {error && (
-              <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <div className="flex items-center gap-3 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                 <X className="h-4 w-4 shrink-0" />
 
                 <span>{error}</span>
@@ -732,7 +770,7 @@ export default function ProfileView({
             )}
 
             {success && (
-              <div className="flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-600">
+              <div className="flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
 
                 <span>{success}</span>
@@ -745,8 +783,8 @@ export default function ProfileView({
             HERO
         =================================================== */}
 
-        <section className="overflow-hidden rounded-3xl border border-border bg-card/80 shadow-xl backdrop-blur-xl">
-          <div className="h-28 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent" />
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl backdrop-blur-xl">
+          <div className="h-28 bg-gradient-to-r from-indigo-600/30 via-purple-600/20 to-blue-600/20" />
 
           <div className="-mt-12 px-5 pb-6 sm:px-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -758,42 +796,42 @@ export default function ProfileView({
                     <img
                       src={image}
                       alt={displayName}
-                      className="h-28 w-28 rounded-3xl border-4 border-card object-cover shadow-lg"
+                      className="h-28 w-28 rounded-3xl border-4 border-slate-950 object-cover shadow-xl"
                     />
                   ) : (
-                    <div className="flex h-28 w-28 items-center justify-center rounded-3xl border-4 border-card bg-primary text-3xl font-bold text-primary-foreground shadow-lg">
+                    <div className="flex h-28 w-28 items-center justify-center rounded-3xl border-4 border-slate-950 bg-gradient-to-br from-indigo-500 to-purple-600 text-3xl font-bold text-white shadow-xl">
                       {getInitials(
                         displayName,
                       )}
                     </div>
                   )}
 
-                  <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-card bg-green-500 text-white">
+                  <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-slate-950 bg-emerald-500 text-white">
                     <CheckCircle2 className="h-4 w-4" />
                   </div>
                 </div>
 
                 <div className="pb-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                    <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                       {displayName}
                     </h1>
 
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-3 py-1 text-xs font-medium text-indigo-300">
                       Candidate
                     </span>
                   </div>
 
-                  <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
+                  <p className="mt-1 flex items-center gap-2 text-sm text-slate-400">
+                    <Mail className="h-4 w-4 text-indigo-400" />
 
                     {displayEmail ||
                       "No email added"}
                   </p>
 
                   {profile?.location && (
-                    <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
+                    <p className="mt-1 flex items-center gap-2 text-sm text-slate-400">
+                      <MapPin className="h-4 w-4 text-indigo-400" />
 
                       {profile.location}
                     </p>
@@ -807,9 +845,9 @@ export default function ProfileView({
                   onClick={() =>
                     setResumeOpen(true)
                   }
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08] hover:text-white"
                 >
-                  <BriefcaseBusiness className="h-4 w-4" />
+                  <BriefcaseBusiness className="h-4 w-4 text-indigo-400" />
 
                   Manage Resume
                 </button>
@@ -819,7 +857,7 @@ export default function ProfileView({
                   onClick={() =>
                     setModal("profile")
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-950 shadow-lg transition hover:bg-slate-100"
                 >
                   <Edit3 className="h-4 w-4" />
 
@@ -844,25 +882,33 @@ export default function ProfileView({
           <ScoreCard
             label="Skills"
             score={scores.skills}
-            icon={<BriefcaseBusiness className="h-4 w-4" />}
+            icon={
+              <BriefcaseBusiness className="h-4 w-4" />
+            }
           />
 
           <ScoreCard
             label="Education"
             score={scores.education}
-            icon={<GraduationCap className="h-4 w-4" />}
+            icon={
+              <GraduationCap className="h-4 w-4" />
+            }
           />
 
           <ScoreCard
             label="Projects"
             score={scores.projects}
-            icon={<BriefcaseBusiness className="h-4 w-4" />}
+            icon={
+              <BriefcaseBusiness className="h-4 w-4" />
+            }
           />
 
           <ScoreCard
             label="Certifications"
             score={scores.certifications}
-            icon={<Award className="h-4 w-4" />}
+            icon={
+              <Award className="h-4 w-4" />
+            }
           />
         </section>
 
@@ -890,7 +936,7 @@ export default function ProfileView({
               }
             >
               {profile?.bio ? (
-                <p className="whitespace-pre-line text-sm leading-7 text-muted-foreground">
+                <p className="whitespace-pre-line text-sm leading-7 text-slate-400">
                   {profile.bio}
                 </p>
               ) : (
@@ -934,7 +980,7 @@ export default function ProfileView({
                         skill.id ??
                         skill.name
                       }
-                      className="group inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-2 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/5"
+                      className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-indigo-400/20 hover:bg-white/[0.08]"
                     >
                       <span>
                         {skill.name}
@@ -952,7 +998,7 @@ export default function ProfileView({
                             deletingId ===
                             skill.id
                           }
-                          className="text-muted-foreground transition hover:text-destructive disabled:opacity-50"
+                          className="text-slate-500 transition hover:text-red-400 disabled:opacity-50"
                           aria-label={`Delete ${skill.name}`}
                         >
                           {deletingId ===
@@ -1007,19 +1053,19 @@ export default function ProfileView({
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-semibold">
+                          <h3 className="font-semibold text-white">
                             {item.degree}
                           </h3>
 
-                          <p className="mt-1 text-sm text-primary">
+                          <p className="mt-1 text-sm text-indigo-300">
                             {item.institution}
                           </p>
 
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="mt-1 text-sm text-slate-400">
                             {item.field}
                           </p>
 
-                          <p className="mt-2 text-xs text-muted-foreground">
+                          <p className="mt-2 text-xs text-slate-500">
                             {item.startYear} –{" "}
                             {item.endYear}
                           </p>
@@ -1092,7 +1138,7 @@ export default function ProfileView({
                         project.id ??
                         project.name
                       }
-                      className="group rounded-2xl border border-border bg-muted/20 p-4 transition hover:border-primary/30 hover:bg-primary/[0.02]"
+                      className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-indigo-400/20 hover:bg-white/[0.05]"
                     >
                       {project.image && (
                         <img
@@ -1103,7 +1149,7 @@ export default function ProfileView({
                       )}
 
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-semibold">
+                        <h3 className="font-semibold text-white">
                           {project.name}
                         </h3>
 
@@ -1136,7 +1182,7 @@ export default function ProfileView({
                         </div>
                       </div>
 
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      <p className="mt-3 text-sm leading-6 text-slate-400">
                         {project.description}
                       </p>
 
@@ -1149,7 +1195,7 @@ export default function ProfileView({
                             ) => (
                               <span
                                 key={technology.trim()}
-                                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                                className="rounded-full border border-indigo-400/10 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300"
                               >
                                 {technology.trim()}
                               </span>
@@ -1164,9 +1210,10 @@ export default function ProfileView({
                           }
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-300 hover:underline"
                         >
                           View Project
+
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       )}
@@ -1214,27 +1261,27 @@ export default function ProfileView({
                           certificate.id ??
                           certificate.name
                         }
-                        className="flex items-start justify-between gap-4 rounded-2xl border border-border p-4"
+                        className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
                       >
                         <div className="flex gap-3">
-                          <div className="rounded-xl bg-primary/10 p-2.5">
-                            <Award className="h-5 w-5 text-primary" />
+                          <div className="rounded-xl bg-indigo-500/10 p-2.5">
+                            <Award className="h-5 w-5 text-indigo-300" />
                           </div>
 
                           <div>
-                            <h3 className="font-semibold">
+                            <h3 className="font-semibold text-white">
                               {
                                 certificate.name
                               }
                             </h3>
 
-                            <p className="mt-1 text-sm text-primary">
+                            <p className="mt-1 text-sm text-indigo-300">
                               {
                                 certificate.issuer
                               }
                             </p>
 
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p className="mt-1 text-xs text-slate-500">
                               Issued{" "}
                               {new Date(
                                 certificate.issueDate,
@@ -1248,9 +1295,10 @@ export default function ProfileView({
                                 }
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-indigo-300 hover:underline"
                               >
                                 Credential
+
                                 <ExternalLink className="h-3 w-3" />
                               </a>
                             )}
@@ -1299,29 +1347,29 @@ export default function ProfileView({
           <aside className="space-y-6">
             {/* Profile score */}
 
-            <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+            <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-xl backdrop-blur-xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold">
+                  <p className="text-sm font-semibold text-white">
                     Profile Strength
                   </p>
 
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-slate-500">
                     Keep your profile complete to
                     improve recruiter matching.
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-primary">
+                  <p className="text-3xl font-bold text-indigo-300">
                     {scores.total}%
                   </p>
                 </div>
               </div>
 
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  className="h-full rounded-full bg-indigo-500 transition-all duration-500"
                   style={{
                     width: `${scores.total}%`,
                   }}
@@ -1368,9 +1416,9 @@ export default function ProfileView({
 
             {/* Contact */}
 
-            <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+            <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-xl backdrop-blur-xl">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">
+                <h3 className="font-semibold text-white">
                   Contact & Links
                 </h3>
 
@@ -1455,18 +1503,18 @@ export default function ProfileView({
 
             {/* Resume */}
 
-            <section className="rounded-3xl border border-primary/20 bg-primary/[0.04] p-5">
+            <section className="rounded-3xl border border-indigo-400/20 bg-indigo-500/[0.06] p-5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-primary/10 p-2.5">
-                  <BriefcaseBusiness className="h-5 w-5 text-primary" />
+                <div className="rounded-xl bg-indigo-500/10 p-2.5">
+                  <BriefcaseBusiness className="h-5 w-5 text-indigo-300" />
                 </div>
 
                 <div>
-                  <h3 className="font-semibold">
+                  <h3 className="font-semibold text-white">
                     AI Resume
                   </h3>
 
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Upload, analyze and ingest your
                     resume.
                   </p>
@@ -1478,7 +1526,7 @@ export default function ProfileView({
                 onClick={() =>
                   setResumeOpen(true)
                 }
-                className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition hover:bg-muted"
+                className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
               >
                 <span>
                   Manage Resume
@@ -1628,12 +1676,6 @@ export default function ProfileView({
           setResumeOpen(false)
         }
         onResumeChange={() => {
-          /*
-           * Resume manager changed.
-           *
-           * We reload profile so the page remains
-           * synchronized with the backend.
-           */
           void loadProfile();
         }}
       />
@@ -1651,24 +1693,24 @@ function ScoreCard({
   icon,
 }: ScoreItemProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm backdrop-blur ">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl">
       <div className="flex items-center justify-between">
-        <div className="rounded-lg bg-primary/10 p-2 text-primary">
+        <div className="rounded-lg bg-indigo-500/10 p-2 text-indigo-300">
           {icon}
         </div>
 
-        <span className="text-xl font-bold">
+        <span className="text-xl font-bold text-white">
           {score}%
         </span>
       </div>
 
-      <p className="mt-3 text-sm font-medium">
+      <p className="mt-3 text-sm font-medium text-slate-300">
         {label}
       </p>
 
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-500"
+          className="h-full rounded-full bg-indigo-500 transition-all duration-500"
           style={{
             width: `${score}%`,
           }}
@@ -1692,18 +1734,18 @@ function MiniScore({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">
+        <span className="text-slate-500">
           {label}
         </span>
 
-        <span className="font-medium">
+        <span className="font-medium text-slate-300">
           {value}%
         </span>
       </div>
 
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-primary"
+          className="h-full rounded-full bg-indigo-500"
           style={{
             width: `${value}%`,
           }}
@@ -1729,14 +1771,14 @@ function ProfileSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-xl backdrop-blur-xl sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+          <div className="rounded-xl bg-indigo-500/10 p-2.5 text-indigo-300">
             {icon}
           </div>
 
-          <h2 className="font-semibold">
+          <h2 className="font-semibold text-white">
             {title}
           </h2>
         </div>
@@ -1759,8 +1801,8 @@ function EmptyText({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center">
-      <p className="text-sm text-muted-foreground">
+    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
+      <p className="text-sm text-slate-500">
         {children}
       </p>
     </div>
@@ -1780,7 +1822,7 @@ function TimelineItem({
 }) {
   return (
     <div className="relative flex gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
         {icon}
       </div>
 
@@ -1812,8 +1854,8 @@ function SmallButton({
         rounded-lg p-2 transition
         ${
           danger
-            ? "text-destructive hover:bg-destructive/10"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            ? "text-red-400 hover:bg-red-500/10"
+            : "text-slate-500 hover:bg-white/[0.06] hover:text-white"
         }
       `}
     >
@@ -1837,16 +1879,16 @@ function ContactRow({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="rounded-lg bg-muted p-2 text-muted-foreground">
+      <div className="rounded-lg bg-white/[0.05] p-2 text-slate-400">
         {icon}
       </div>
 
       <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <p className="text-[10px] uppercase tracking-wider text-slate-600">
           {label}
         </p>
 
-        <p className="truncate text-sm font-medium">
+        <p className="truncate text-sm font-medium text-slate-300">
           {value}
         </p>
       </div>
@@ -1872,14 +1914,14 @@ function SocialLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between rounded-xl border border-border px-3 py-2.5 text-sm transition hover:bg-muted"
+      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
     >
       <span className="flex items-center gap-2">
         {icon}
         {label}
       </span>
 
-      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+      <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
     </a>
   );
 }
@@ -1911,14 +1953,14 @@ function Modal({
         }
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-border bg-background shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-border bg-background/95 px-6 py-5 backdrop-blur">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-white/10 bg-slate-950/95 px-6 py-5 backdrop-blur">
           <div>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-white">
               {title}
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-slate-500">
               {description}
             </p>
           </div>
@@ -1926,7 +1968,7 @@ function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-muted"
+            className="rounded-lg p-2 text-slate-500 hover:bg-white/[0.06] hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1963,7 +2005,7 @@ function Input({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium">
+      <span className="mb-2 block text-sm font-medium text-slate-300">
         {label}
       </span>
 
@@ -1975,7 +2017,7 @@ function Input({
         }
         placeholder={placeholder}
         required={required}
-        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10"
       />
     </label>
   );
@@ -2002,7 +2044,7 @@ function Textarea({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium">
+      <span className="mb-2 block text-sm font-medium text-slate-300">
         {label}
       </span>
 
@@ -2013,7 +2055,7 @@ function Textarea({
         }
         placeholder={placeholder}
         rows={rows}
-        className="w-full resize-none rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10"
       />
     </label>
   );
@@ -2033,12 +2075,12 @@ function FormActions({
   submitLabel: string;
 }) {
   return (
-    <div className="flex justify-end gap-3 border-t border-border pt-5">
+    <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
       {onCancel && (
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted"
+          className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/[0.06]"
         >
           Cancel
         </button>
@@ -2047,7 +2089,7 @@ function FormActions({
       <button
         type="submit"
         disabled={saving}
-        className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-slate-950 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving && (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -2596,7 +2638,7 @@ function CertificationForm({
 
       {!initial && (
         <label className="block">
-          <span className="mb-2 block text-sm font-medium">
+          <span className="mb-2 block text-sm font-medium text-slate-300">
             Certificate Image
           </span>
 
@@ -2608,7 +2650,7 @@ function CertificationForm({
                 event.target.files?.[0],
               )
             }
-            className="block w-full rounded-xl border border-border px-3 py-2 text-sm"
+            className="block w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-300"
           />
         </label>
       )}
@@ -2624,3 +2666,4 @@ function CertificationForm({
     </form>
   );
 }
+

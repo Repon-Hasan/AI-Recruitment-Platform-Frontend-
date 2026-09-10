@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import NotificationButton from "./notification-Button";
+import { useRouter } from "next/navigation";
 
 /* =========================================================
    TYPES
@@ -225,51 +226,52 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   /* =======================================================
      LOGOUT
   ======================================================= */
+const router = useRouter();
 
-  const handleLogout = async () => {
-    if (loggingOut) {
-      return;
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  try {
+    setLoggingOut(true);
+
+
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        result?.message ?? "Unable to log out."
+      );
     }
 
-    try {
-      setLoggingOut(true);
+    setUser(null);
 
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+    toast.success("Logged out", {
+      description:
+        result?.message ??
+        "You have been logged out successfully.",
+    });
 
-      const result = await response.json().catch(() => null);
+    router.replace("/");
+    router.refresh();
+  } catch (error) {
+    console.error("Logout failed:", error);
 
-      if (!response.ok) {
-        throw new Error(
-          result?.message ?? "Unable to log out.",
-        );
-      }
-
-      toast.success("Logged out", {
-        description:
-          result?.message ??
-          "You have been logged out successfully.",
-      });
-
-      setUser(null);
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed:", error);
-
-      toast.error("Logout failed", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Please try again.",
-      });
-    } finally {
-      setLoggingOut(false);
-    }
-  };
-
+    toast.error("Logout failed", {
+      description:
+        error instanceof Error
+          ? error.message
+          : "Please try again.",
+    });
+  } finally {
+    setLoggingOut(false);
+  }
+};
   /* =======================================================
      PROFILE LINKS
   ======================================================= */
@@ -703,7 +705,10 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 <DropdownMenuItem
                   onSelect={(event) => {
                     event.preventDefault();
-                    handleLogout();
+                    void handleLogout();
+                  }}
+                  onClick={()=>{
+                    handleLogout()
                   }}
                   disabled={loggingOut}
                   className="cursor-pointer rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"

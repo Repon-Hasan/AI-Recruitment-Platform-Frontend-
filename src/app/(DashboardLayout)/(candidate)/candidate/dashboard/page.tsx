@@ -827,9 +827,9 @@ function GlassCard({
   return (
     <div
       className={[
-        "rounded-3xl border border-slate-200/70",
-        "bg-white/85 backdrop-blur-xl",
-        "shadow-[0_20px_60px_-30px_rgba(15,23,42,0.28)]",
+        "rounded-3xl border border-white/10",
+        "bg-white/[0.06] backdrop-blur-xl",
+        "shadow-2xl",
         className,
       ].join(" ")}
     >
@@ -847,7 +847,7 @@ function LoadingBlock({
     <div
       className={[
         "animate-pulse rounded-2xl",
-        "bg-slate-100",
+        "bg-white/10",
         className,
       ].join(" ")}
     />
@@ -870,16 +870,16 @@ function EmptyState({
   action?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-400 shadow-sm">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.06] text-slate-400">
         <Icon className="h-5 w-5" />
       </div>
 
-      <h3 className="mt-4 text-sm font-semibold text-slate-900">
+      <h3 className="mt-4 text-sm font-semibold text-white">
         {title}
       </h3>
 
-      <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
+      <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">
         {description}
       </p>
 
@@ -887,7 +887,7 @@ function EmptyState({
         action && (
           <Link
             href={href}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-950 transition hover:bg-slate-100"
           >
             {action}
 
@@ -927,29 +927,29 @@ function StatCard({
       className="group h-full"
     >
       <GlassCard className="relative h-full overflow-hidden p-5">
-        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-slate-100 opacity-70 blur-2xl transition-all duration-500 group-hover:scale-150" />
+        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-indigo-500/10 opacity-70 blur-2xl transition-all duration-500 group-hover:scale-150" />
 
         <div className="relative">
           <div className="flex items-start justify-between">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 transition-transform duration-300 group-hover:scale-110">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-300 transition-transform duration-300 group-hover:scale-110">
               <Icon className="h-5 w-5" />
             </div>
 
             {href && (
-              <ArrowRight className="h-4 w-4 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-600" />
+              <ArrowRight className="h-4 w-4 text-slate-600 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-300" />
             )}
           </div>
 
           <div className="mt-5">
-            <p className="text-3xl font-bold tracking-tight text-slate-950">
+            <p className="text-3xl font-bold tracking-tight text-white">
               {value}
             </p>
 
-            <p className="mt-1 text-sm font-semibold text-slate-700">
+            <p className="mt-1 text-sm font-semibold text-slate-200">
               {label}
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-400">
               {description}
             </p>
           </div>
@@ -1005,16 +1005,16 @@ function ProfileMetric({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] text-slate-400">
         <Icon className="h-4 w-4" />
       </div>
 
       <div>
-        <p className="text-sm font-bold text-slate-950">
+        <p className="text-sm font-bold text-white">
           {value}
         </p>
 
-        <p className="text-[10px] text-slate-400">
+        <p className="text-[10px] text-slate-500">
           {label}
         </p>
       </div>
@@ -1048,31 +1048,31 @@ function QuickAction({
         }}
         className={[
           "relative overflow-hidden rounded-3xl",
-          "border border-slate-200/70",
+          "border border-white/10",
           "bg-gradient-to-br",
           className,
           "p-5",
-          "shadow-[0_15px_45px_-30px_rgba(15,23,42,0.35)]",
+          "shadow-2xl",
           "transition-shadow duration-300",
-          "group-hover:shadow-[0_25px_60px_-30px_rgba(15,23,42,0.35)]",
+          "group-hover:border-white/20",
         ].join(" ")}
       >
-        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/60 blur-2xl transition-transform duration-500 group-hover:scale-150" />
+        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10 blur-2xl transition-transform duration-500 group-hover:scale-150" />
 
         <div className="relative">
           <div className="flex items-center justify-between">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm">
-              <Icon className="h-5 w-5 text-slate-700" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 shadow-sm">
+              <Icon className="h-5 w-5 text-white" />
             </div>
 
-            <ArrowRight className="h-4 w-4 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-600" />
+            <ArrowRight className="h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />
           </div>
 
-          <h3 className="mt-5 text-sm font-bold text-slate-950">
+          <h3 className="mt-5 text-sm font-bold text-white">
             {title}
           </h3>
 
-          <p className="mt-1 text-xs leading-5 text-slate-500">
+          <p className="mt-1 text-xs leading-5 text-slate-400">
             {description}
           </p>
         </div>
@@ -1125,10 +1125,6 @@ export default function CandidateDashboardPage() {
     analysisQuery.data ??
     null;
 
-  /* -------------------------------------------------------
-     PROFILE
-  ------------------------------------------------------- */
-
   const profileCompletion =
     useMemo(
       () =>
@@ -1146,10 +1142,6 @@ export default function CandidateDashboardPage() {
         ),
       [analysis],
     );
-
-  /* -------------------------------------------------------
-     APPLICATION STATS
-  ------------------------------------------------------- */
 
   const applicationStats =
     useMemo(() => {
@@ -1190,10 +1182,6 @@ export default function CandidateDashboardPage() {
         accepted,
       };
     }, [applications]);
-
-  /* -------------------------------------------------------
-     INTERVIEW STATS
-  ------------------------------------------------------- */
 
   const upcomingInterviews =
     useMemo(() => {
@@ -1236,10 +1224,6 @@ export default function CandidateDashboardPage() {
   const interviewCount =
     interviews.length;
 
-  /* -------------------------------------------------------
-     RECENT APPLICATIONS
-  ------------------------------------------------------- */
-
   const recentApplications =
     useMemo(() => {
       return [
@@ -1260,10 +1244,6 @@ export default function CandidateDashboardPage() {
         .slice(0, 5);
     }, [applications]);
 
-  /* -------------------------------------------------------
-     SKILLS
-  ------------------------------------------------------- */
-
   const displayedSkills =
     profile?.skills.slice(
       0,
@@ -1271,10 +1251,6 @@ export default function CandidateDashboardPage() {
         ? 20
         : 8,
     ) ?? [];
-
-  /* -------------------------------------------------------
-     USER
-  ------------------------------------------------------- */
 
   const firstName =
     profile?.name
@@ -1297,21 +1273,29 @@ export default function CandidateDashboardPage() {
     jobsQuery.isLoading ||
     applicationsQuery.isLoading;
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f8fafc]">
+    <main className="relative min-h-screen w-full overflow-hidden bg-slate-950 text-white">
 
       {/* ===================================================
-          BACKGROUND
+          BACKGROUND — SAME STYLE AS RECRUITER PROFILE
       =================================================== */}
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
 
-        {/* Main background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-slate-100" />
+        {/* Base background */}
+        <div className="absolute inset-0 bg-slate-950" />
+
+        {/* Left Indigo Glow */}
+        <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+        {/* Right Purple Glow */}
+        <div className="absolute right-[-10rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+        {/* Bottom Blue Glow */}
+        <div className="absolute bottom-[-12rem] left-1/3 h-[30rem] w-[30rem] rounded-full bg-blue-600/10 blur-3xl" />
+
+        {/* Radial Highlight */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.08),transparent_35%)]" />
 
         {/* Particle Wave */}
         <div
@@ -1323,17 +1307,11 @@ export default function CandidateDashboardPage() {
             w-[900px]
             -translate-x-1/2
             overflow-hidden
-            opacity-[0.12]
+            opacity-[0.10]
           "
         >
           <ParticleWave />
         </div>
-
-        {/* Violet glow */}
-        <div className="absolute left-[-180px] top-[350px] h-[350px] w-[350px] rounded-full bg-violet-200/30 blur-[100px]" />
-
-        {/* Cyan glow */}
-        <div className="absolute right-[-180px] top-[600px] h-[400px] w-[400px] rounded-full bg-cyan-200/30 blur-[120px]" />
 
       </div>
 
@@ -1341,9 +1319,9 @@ export default function CandidateDashboardPage() {
           HEADER
       =================================================== */}
 
-      <section className="relative z-10 overflow-hidden border-b border-slate-200/70 bg-white/70 backdrop-blur-xl">
+      <section className="relative z-10 overflow-hidden border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
 
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 via-cyan-500 to-blue-500" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500" />
 
         <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8">
 
@@ -1351,7 +1329,7 @@ export default function CandidateDashboardPage() {
 
             <div>
 
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-600">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300">
 
                 <Sparkles className="h-3.5 w-3.5" />
 
@@ -1367,7 +1345,7 @@ export default function CandidateDashboardPage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                  <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
 
                     {greeting},{" "}
 
@@ -1375,7 +1353,7 @@ export default function CandidateDashboardPage() {
 
                   </h1>
 
-                  <p className="mt-1 max-w-2xl text-sm text-slate-500">
+                  <p className="mt-1 max-w-2xl text-sm text-slate-400">
                     Track your applications,
                     improve your resume,
                     discover better
@@ -1392,7 +1370,7 @@ export default function CandidateDashboardPage() {
 
               <Link
                 href="/candidate/jobs"
-                className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:inline-flex"
+                className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-slate-300 shadow-sm transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white sm:inline-flex"
               >
                 <Search className="h-4 w-4" />
 
@@ -1401,7 +1379,7 @@ export default function CandidateDashboardPage() {
 
               <Link
                 href="/candidate/profile"
-                className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 shadow-sm transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10"
               >
                 {profile?.image ? (
                   <img
@@ -1415,7 +1393,7 @@ export default function CandidateDashboardPage() {
                     className="h-9 w-9 rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-cyan-500 text-xs font-bold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
                     {getInitials(
                       profile?.name,
                     )}
@@ -1423,7 +1401,7 @@ export default function CandidateDashboardPage() {
                 )}
 
                 <div className="hidden text-left sm:block">
-                  <p className="text-xs font-semibold text-slate-900">
+                  <p className="text-xs font-semibold text-white">
                     {profile?.name ??
                       "Candidate"}
                   </p>
@@ -1433,7 +1411,7 @@ export default function CandidateDashboardPage() {
                   </p>
                 </div>
 
-                <ChevronRight className="hidden h-4 w-4 text-slate-400 sm:block" />
+                <ChevronRight className="hidden h-4 w-4 text-slate-600 sm:block" />
               </Link>
 
             </div>
@@ -1466,13 +1444,13 @@ export default function CandidateDashboardPage() {
         >
           <GlassCard className="relative overflow-hidden">
 
-            <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-violet-50 via-transparent to-transparent lg:block" />
+            <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-indigo-500/10 via-transparent to-transparent lg:block" />
 
             <div className="relative flex flex-col gap-6 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
 
               <div className="flex items-start gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-300">
                   <Target className="h-5 w-5" />
                 </div>
 
@@ -1480,19 +1458,19 @@ export default function CandidateDashboardPage() {
 
                   <div className="flex flex-wrap items-center gap-2">
 
-                    <h2 className="font-bold text-slate-950">
+                    <h2 className="font-bold text-white">
                       Complete your
                       candidate profile
                     </h2>
 
-                    <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[10px] font-bold text-violet-700">
+                    <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-[10px] font-bold text-indigo-300">
                       {profileCompletion}%
                       complete
                     </span>
 
                   </div>
 
-                  <p className="mt-1 max-w-xl text-sm text-slate-500">
+                  <p className="mt-1 max-w-xl text-sm text-slate-400">
                     A complete profile helps
                     our AI understand your
                     skills and improve job
@@ -1511,13 +1489,13 @@ export default function CandidateDashboardPage() {
                     Profile strength
                   </span>
 
-                  <span className="text-slate-900">
+                  <span className="text-slate-300">
                     {profileCompletion}%
                   </span>
 
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
 
                   <motion.div
                     initial={{
@@ -1530,14 +1508,14 @@ export default function CandidateDashboardPage() {
                       duration: 1,
                       ease: "easeOut",
                     }}
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500"
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
 
                 </div>
 
                 <Link
                   href="/candidate/profile"
-                  className="inline-flex items-center gap-2 self-start text-xs font-semibold text-violet-600 transition hover:text-violet-700"
+                  className="inline-flex items-center gap-2 self-start text-xs font-semibold text-indigo-300 transition hover:text-indigo-200"
                 >
                   Improve profile
 
@@ -1628,15 +1606,15 @@ export default function CandidateDashboardPage() {
             >
               <GlassCard className="overflow-hidden">
 
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-6">
+                <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 sm:px-6">
 
                   <div>
 
-                    <h2 className="font-bold text-slate-950">
+                    <h2 className="font-bold text-white">
                       Recent applications
                     </h2>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Keep track of your latest
                       opportunities.
                     </p>
@@ -1645,7 +1623,7 @@ export default function CandidateDashboardPage() {
 
                   <Link
                     href="/candidate/applications"
-                    className="hidden items-center gap-1 text-xs font-semibold text-violet-600 sm:flex"
+                    className="hidden items-center gap-1 text-xs font-semibold text-indigo-300 sm:flex"
                   >
                     View all
 
@@ -1725,16 +1703,16 @@ export default function CandidateDashboardPage() {
                                   index *
                                   0.05,
                               }}
-                              className="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition hover:border-slate-200 hover:bg-slate-50"
+                              className="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition hover:border-white/10 hover:bg-white/[0.04]"
                             >
 
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
                                 <BriefcaseBusiness className="h-5 w-5" />
                               </div>
 
                               <div className="min-w-0 flex-1">
 
-                                <p className="truncate text-sm font-semibold text-slate-900">
+                                <p className="truncate text-sm font-semibold text-white">
                                   {job?.title ??
                                     `Application #${application.id.slice(
                                       0,
@@ -1785,7 +1763,7 @@ export default function CandidateDashboardPage() {
                                 )}
                               </div>
 
-                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-slate-300" />
 
                             </motion.div>
                           );
@@ -1809,23 +1787,23 @@ export default function CandidateDashboardPage() {
             >
               <GlassCard className="overflow-hidden">
 
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-6">
+                <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 sm:px-6">
 
                   <div>
 
                     <div className="flex items-center gap-2">
 
-                      <h2 className="font-bold text-slate-950">
+                      <h2 className="font-bold text-white">
                         Recommended for you
                       </h2>
 
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[9px] font-bold text-violet-700">
+                      <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[9px] font-bold text-violet-300">
                         AI
                       </span>
 
                     </div>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Opportunities from your
                       candidate job feed.
                     </p>
@@ -1834,7 +1812,7 @@ export default function CandidateDashboardPage() {
 
                   <Link
                     href="/candidate/jobs"
-                    className="hidden items-center gap-1 text-xs font-semibold text-violet-600 sm:flex"
+                    className="hidden items-center gap-1 text-xs font-semibold text-indigo-300 sm:flex"
                   >
                     Browse jobs
 
@@ -1903,18 +1881,18 @@ export default function CandidateDashboardPage() {
                               whileHover={{
                                 y: -3,
                               }}
-                              className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-violet-200 hover:shadow-lg hover:shadow-violet-500/5"
+                              className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-indigo-400/20 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-indigo-500/5"
                             >
 
                               <div className="flex items-start gap-3">
 
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-cyan-100 text-violet-600">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
                                   <BriefcaseBusiness className="h-4 w-4" />
                                 </div>
 
                                 <div className="min-w-0 flex-1">
 
-                                  <h3 className="truncate text-sm font-bold text-slate-900">
+                                  <h3 className="truncate text-sm font-bold text-white">
                                     {
                                       job.title
                                     }
@@ -1951,7 +1929,7 @@ export default function CandidateDashboardPage() {
                                           key={
                                             skill
                                           }
-                                          className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600"
+                                          className="rounded-lg bg-white/[0.06] px-2 py-1 text-[10px] font-medium text-slate-400"
                                         >
                                           {
                                             skill
@@ -1962,7 +1940,7 @@ export default function CandidateDashboardPage() {
 
                                   {skills.length >
                                     3 && (
-                                    <span className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-500">
+                                    <span className="rounded-lg bg-white/[0.06] px-2 py-1 text-[10px] font-medium text-slate-500">
                                       +
                                       {skills.length -
                                         3}
@@ -1974,7 +1952,7 @@ export default function CandidateDashboardPage() {
 
                               <Link
                                 href={`/candidate/jobs/${job.id}`}
-                                className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] font-semibold text-violet-600"
+                                className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-[11px] font-semibold text-indigo-300"
                               >
                                 View opportunity
 
@@ -2007,9 +1985,9 @@ export default function CandidateDashboardPage() {
             >
               <GlassCard className="overflow-hidden">
 
-                <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950 p-6 text-white">
+                <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white">
 
-                  <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-violet-500/20 blur-2xl" />
+                  <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-indigo-500/20 blur-2xl" />
 
                   <div className="relative">
 
@@ -2019,9 +1997,9 @@ export default function CandidateDashboardPage() {
 
                         <div className="flex items-center gap-2">
 
-                          <Sparkles className="h-4 w-4 text-violet-300" />
+                          <Sparkles className="h-4 w-4 text-indigo-300" />
 
-                          <span className="text-xs font-bold uppercase tracking-[0.15em] text-violet-300">
+                          <span className="text-xs font-bold uppercase tracking-[0.15em] text-indigo-300">
                             AI Resume
                           </span>
 
@@ -2107,7 +2085,7 @@ export default function CandidateDashboardPage() {
                               transition={{
                                 duration: 1.2,
                               }}
-                              className="text-violet-400"
+                              className="text-indigo-400"
                             />
                           </svg>
 
@@ -2147,7 +2125,7 @@ export default function CandidateDashboardPage() {
 
                           <Link
                             href="/candidate/resume"
-                            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-violet-300 hover:text-white"
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-300 hover:text-white"
                           >
                             Improve resume
 
@@ -2205,22 +2183,22 @@ export default function CandidateDashboardPage() {
             >
               <GlassCard className="overflow-hidden">
 
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5">
+                <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
 
                   <div>
 
-                    <h2 className="font-bold text-slate-950">
+                    <h2 className="font-bold text-white">
                       Upcoming interviews
                     </h2>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Be ready for your next
                       conversation.
                     </p>
 
                   </div>
 
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
                     <CalendarDays className="h-4 w-4" />
                   </div>
 
@@ -2263,19 +2241,19 @@ export default function CandidateDashboardPage() {
                             key={
                               interview.id
                             }
-                            className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4"
+                            className="rounded-2xl border border-blue-400/10 bg-blue-500/5 p-4"
                           >
 
                             <div className="flex items-start justify-between gap-3">
 
                               <div className="min-w-0">
 
-                                <h3 className="truncate text-sm font-bold text-slate-900">
+                                <h3 className="truncate text-sm font-bold text-white">
                                   {interview.title ??
                                     "Job Interview"}
                                 </h3>
 
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-slate-400">
                                   {formatInterviewDate(
                                     interview.scheduledAt,
                                   )}
@@ -2283,7 +2261,7 @@ export default function CandidateDashboardPage() {
 
                               </div>
 
-                              <span className="shrink-0 rounded-lg bg-white px-2 py-1 text-[10px] font-bold text-blue-600 shadow-sm">
+                              <span className="shrink-0 rounded-lg bg-white/10 px-2 py-1 text-[10px] font-bold text-blue-300">
                                 {
                                   interview.durationMinutes
                                 }{" "}
@@ -2294,7 +2272,7 @@ export default function CandidateDashboardPage() {
 
                             <div className="mt-3 flex items-center justify-between">
 
-                              <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400">
 
                                 <Clock3 className="h-3.5 w-3.5" />
 
@@ -2302,7 +2280,7 @@ export default function CandidateDashboardPage() {
                                   interview.scheduledAt,
                                 )}
 
-                                <span className="text-slate-300">
+                                <span className="text-slate-600">
                                   •
                                 </span>
 
@@ -2320,7 +2298,7 @@ export default function CandidateDashboardPage() {
                                   }
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="text-[11px] font-bold text-blue-600 hover:text-blue-700"
+                                  className="text-[11px] font-bold text-blue-300 hover:text-blue-200"
                                 >
                                   Join meeting
                                 </a>
@@ -2339,7 +2317,7 @@ export default function CandidateDashboardPage() {
                     0 && (
                     <Link
                       href="/candidate/interviews"
-                      className="mt-4 flex items-center justify-center gap-1 rounded-xl bg-slate-50 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+                      className="mt-4 flex items-center justify-center gap-1 rounded-xl bg-white/[0.04] py-2.5 text-xs font-semibold text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
                     >
                       View interviews
 
@@ -2365,17 +2343,17 @@ export default function CandidateDashboardPage() {
 
                   <div>
 
-                    <h2 className="font-bold text-slate-950">
+                    <h2 className="font-bold text-white">
                       Your skills
                     </h2>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Skills used for job matching.
                     </p>
 
                   </div>
 
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
                     <BarChart3 className="h-4 w-4" />
                   </div>
 
@@ -2434,7 +2412,7 @@ export default function CandidateDashboardPage() {
                                   index *
                                   0.03,
                               }}
-                              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
+                              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:border-indigo-400/20 hover:bg-indigo-500/10 hover:text-indigo-300"
                             >
                               {
                                 skillName
@@ -2459,7 +2437,7 @@ export default function CandidateDashboardPage() {
                                 !current,
                             )
                           }
-                          className="mt-4 text-xs font-semibold text-violet-600 hover:text-violet-700"
+                          className="mt-4 text-xs font-semibold text-indigo-300 hover:text-indigo-200"
                         >
                           {showAllSkills
                             ? "Show less"
@@ -2487,11 +2465,11 @@ export default function CandidateDashboardPage() {
 
           <div className="mb-4">
 
-            <h2 className="text-lg font-bold text-slate-950">
+            <h2 className="text-lg font-bold text-white">
               Career tools
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-400">
               Everything you need to move
               your career forward.
             </p>
@@ -2505,7 +2483,7 @@ export default function CandidateDashboardPage() {
               icon={Search}
               title="Find jobs"
               description="Discover opportunities matching your skills."
-              className="from-violet-50 to-white"
+              className="from-indigo-950/60 to-slate-950"
             />
 
             <QuickAction
@@ -2513,7 +2491,7 @@ export default function CandidateDashboardPage() {
               icon={FileText}
               title="Improve resume"
               description="Analyze your resume with AI."
-              className="from-cyan-50 to-white"
+              className="from-cyan-950/60 to-slate-950"
             />
 
             <QuickAction
@@ -2523,7 +2501,7 @@ export default function CandidateDashboardPage() {
               }
               title="Practice interview"
               description="Prepare for technical and HR questions."
-              className="from-blue-50 to-white"
+              className="from-blue-950/60 to-slate-950"
             />
 
             <QuickAction
@@ -2533,7 +2511,7 @@ export default function CandidateDashboardPage() {
               }
               title="Update profile"
               description="Keep your candidate profile complete."
-              className="from-emerald-50 to-white"
+              className="from-emerald-950/60 to-slate-950"
             />
 
           </div>
@@ -2551,7 +2529,7 @@ export default function CandidateDashboardPage() {
 
             <div className="grid lg:grid-cols-[auto_1fr_auto] lg:items-center">
 
-              <div className="flex items-center gap-4 border-b border-slate-100 p-5 lg:border-b-0 lg:border-r lg:p-6">
+              <div className="flex items-center gap-4 border-b border-white/10 p-5 lg:border-b-0 lg:border-r lg:p-6">
 
                 {profile?.image ? (
                   <img
@@ -2565,7 +2543,7 @@ export default function CandidateDashboardPage() {
                     className="h-16 w-16 rounded-2xl object-cover"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-cyan-500 text-lg font-bold text-white">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-lg font-bold text-white">
                     {getInitials(
                       profile?.name,
                     )}
@@ -2574,18 +2552,18 @@ export default function CandidateDashboardPage() {
 
                 <div>
 
-                  <h2 className="font-bold text-slate-950">
+                  <h2 className="font-bold text-white">
                     {profile?.name ??
                       "Candidate"}
                   </h2>
 
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-400">
                     {profile?.experience ??
                       "Experience not added"}
                   </p>
 
                   {profile?.location && (
-                    <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+                    <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
 
                       <MapPin className="h-3 w-3" />
 
@@ -2647,11 +2625,11 @@ export default function CandidateDashboardPage() {
 
               </div>
 
-              <div className="border-t border-slate-100 p-5 lg:border-l lg:border-t-0 lg:p-6">
+              <div className="border-t border-white/10 p-5 lg:border-l lg:border-t-0 lg:p-6">
 
                 <Link
                   href="/candidate/profile"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-xs font-bold text-white transition hover:bg-slate-800"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-bold text-slate-950 transition hover:bg-slate-100"
                 >
                   Manage profile
 
@@ -2671,7 +2649,7 @@ export default function CandidateDashboardPage() {
 
           <Link
             href="/candidate/jobs"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-700 shadow-sm"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-semibold text-slate-300 shadow-sm"
           >
             <Search className="h-4 w-4" />
 
@@ -2680,7 +2658,7 @@ export default function CandidateDashboardPage() {
 
           <Link
             href="/candidate/applications"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-xs font-semibold text-white"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-semibold text-slate-950"
           >
             <BriefcaseBusiness className="h-4 w-4" />
 
@@ -2690,7 +2668,7 @@ export default function CandidateDashboardPage() {
         </div>
 
         {isLoading && (
-          <p className="text-center text-[10px] text-slate-400">
+          <p className="text-center text-[10px] text-slate-500">
             Loading your career
             dashboard...
           </p>
@@ -2701,4 +2679,3 @@ export default function CandidateDashboardPage() {
     </main>
   );
 }
-

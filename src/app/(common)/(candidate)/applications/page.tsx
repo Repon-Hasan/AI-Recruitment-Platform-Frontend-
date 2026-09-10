@@ -1113,7 +1113,7 @@ export default function ApplicationsPage() {
           }}
           className="mb-8"
         >
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mt-7">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/[0.07] px-3 py-1.5 text-xs font-medium text-cyan-300">
                 <Sparkles className="h-3.5 w-3.5" />

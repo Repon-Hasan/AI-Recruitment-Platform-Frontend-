@@ -496,7 +496,7 @@ export default function CandidateMessagePage() {
           MAIN CONTAINER
       ===================================================== */}
 
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-screen w-full mt-12 max-w-[1600px] flex-col px-4 py-4 sm:px-6 lg:px-8">
 
         {/* ===================================================
             HEADER
@@ -504,7 +504,7 @@ export default function CandidateMessagePage() {
 
         <header className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 shadow-2xl backdrop-blur-xl">
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 ">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 ring-1 ring-cyan-400/20">
               <MessageCircle
                 className="h-5 w-5 text-cyan-300"

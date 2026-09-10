@@ -23,6 +23,7 @@ export function DesktopSidebar({
         border-r
         bg-background
         lg:flex
+        
       "
     >
       <Sidebar role={role} />

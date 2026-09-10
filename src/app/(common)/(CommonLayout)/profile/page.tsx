@@ -55,9 +55,7 @@ export default async function ProfilePage() {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
             image: user.image,
-            emailVerified: user.emailVerified,
           }}
           candidateProfile={result.candidateProfile}
         />

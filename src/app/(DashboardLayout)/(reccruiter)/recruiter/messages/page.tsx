@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -29,11 +30,57 @@ import {
   FaXmark,
 } from "react-icons/fa6";
 
+import ParticleWave from "@/components/ui/particle-wave";
+
 import {
   recruiterMessageApi,
   type RecruiterConversation,
   type RecruiterMessage,
 } from "@/lib/api/message.recruiter.api";
+
+/* =========================================================
+   API
+========================================================= */
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:5000/api/v1";
+
+async function getApplicationMessages(
+  applicationId: string,
+): Promise<RecruiterMessage[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/conversations/applications/${applicationId}/messages`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const result = (await response.json()) as {
+    success?: boolean;
+    message?: string;
+    data?: RecruiterMessage[] | {
+      messages?: RecruiterMessage[];
+    };
+  };
+
+  if (!response.ok || !result.success) {
+    throw new Error(
+      result.message ??
+        "Failed to load messages.",
+    );
+  }
+
+  if (Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return result.data?.messages ?? [];
+}
 
 /* =========================================================
    Helpers
@@ -51,7 +98,8 @@ function getCandidate(
 function getCandidateName(
   conversation: RecruiterConversation,
 ) {
-  const candidate = getCandidate(conversation);
+  const candidate =
+    getCandidate(conversation);
 
   return (
     candidate?.name ||
@@ -91,8 +139,8 @@ function getCompanyName(
   conversation: RecruiterConversation,
 ) {
   return (
-    conversation.jobApplication?.job?.company?.name ||
-    "Your company"
+    conversation.jobApplication?.job?.company
+      ?.name || "Your company"
   );
 }
 
@@ -204,12 +252,12 @@ function ConversationSkeleton() {
           key={index}
           className="flex items-center gap-3 rounded-2xl p-3"
         >
-          <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-gray-200 dark:bg-white/10" />
+          <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-white/10" />
 
           <div className="min-w-0 flex-1 space-y-2">
-            <div className="h-3 w-28 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
+            <div className="h-3 w-28 animate-pulse rounded bg-white/10" />
 
-            <div className="h-3 w-40 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
+            <div className="h-3 w-40 animate-pulse rounded bg-white/5" />
           </div>
         </div>
       ))}
@@ -259,14 +307,14 @@ function ConversationItem({
       }}
       className={`group relative flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 ${
         active
-          ? "border-blue-200 bg-blue-50 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/10"
-          : "border-transparent hover:border-gray-200 hover:bg-gray-50 dark:hover:border-white/10 dark:hover:bg-white/[0.03]"
+          ? "border-indigo-400/20 bg-indigo-500/10 shadow-sm"
+          : "border-transparent hover:border-white/10 hover:bg-white/[0.04]"
       }`}
     >
       {active && (
         <motion.div
           layoutId="activeConversation"
-          className="absolute bottom-3 left-0 top-3 w-1 rounded-r-full bg-blue-600 dark:bg-blue-400"
+          className="absolute bottom-3 left-0 top-3 w-1 rounded-r-full bg-indigo-400"
         />
       )}
 
@@ -275,15 +323,15 @@ function ConversationItem({
           <img
             src={image}
             alt={name}
-            className="h-12 w-12 rounded-2xl object-cover ring-2 ring-white dark:ring-[#111318]"
+            className="h-12 w-12 rounded-2xl object-cover ring-2 ring-slate-900"
           />
         ) : (
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
             {getInitials(name)}
           </div>
         )}
 
-        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-emerald-500 dark:border-[#111318]">
+        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-500">
           <span className="h-1.5 w-1.5 rounded-full bg-white" />
         </span>
       </div>
@@ -293,15 +341,15 @@ function ConversationItem({
           <h3
             className={`truncate text-sm font-semibold ${
               active
-                ? "text-blue-900 dark:text-blue-200"
-                : "text-gray-900 dark:text-white"
+                ? "text-indigo-200"
+                : "text-white"
             }`}
           >
             {name}
           </h3>
 
           {lastMessage?.createdAt && (
-            <span className="shrink-0 text-[10px] text-gray-400">
+            <span className="shrink-0 text-[10px] text-slate-500">
               {formatMessageDate(
                 lastMessage.createdAt,
               )}
@@ -309,11 +357,11 @@ function ConversationItem({
           )}
         </div>
 
-        <p className="mt-0.5 truncate text-xs font-medium text-gray-500 dark:text-gray-400">
+        <p className="mt-0.5 truncate text-xs font-medium text-indigo-300/70">
           {getJobTitle(conversation)}
         </p>
 
-        <p className="mt-1 truncate text-xs text-gray-400 dark:text-gray-500">
+        <p className="mt-1 truncate text-xs text-slate-500">
           {lastMessage?.content ||
             "No messages yet"}
         </p>
@@ -322,8 +370,8 @@ function ConversationItem({
       <FaChevronRight
         className={`shrink-0 text-[10px] transition-all ${
           active
-            ? "text-blue-500"
-            : "translate-x-[-4px] text-gray-300 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 dark:text-gray-600"
+            ? "text-indigo-300"
+            : "translate-x-[-4px] text-slate-700 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
         }`}
       />
     </motion.button>
@@ -379,7 +427,7 @@ function MessageBubble({
             : "flex-row-reverse"
         }`}
       >
-        <div className="hidden h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-[10px] font-bold text-white sm:flex">
+        <div className="hidden h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-bold text-white sm:flex">
           {isCandidate &&
           candidateImage ? (
             <img
@@ -396,10 +444,10 @@ function MessageBubble({
 
         <div>
           <div
-            className={`rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+            className={`rounded-2xl px-4 py-3 text-sm leading-6 shadow-lg ${
               isCandidate
-                ? "rounded-bl-md border border-gray-200 bg-white text-gray-700 dark:border-white/10 dark:bg-[#15171c] dark:text-gray-200"
-                : "rounded-br-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/10"
+                ? "rounded-bl-md border border-white/10 bg-white/[0.055] text-slate-200"
+                : "rounded-br-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-500/10"
             }`}
           >
             {message.content ||
@@ -407,7 +455,7 @@ function MessageBubble({
           </div>
 
           <div
-            className={`mt-1 flex items-center gap-1.5 text-[10px] text-gray-400 ${
+            className={`mt-1 flex items-center gap-1.5 text-[10px] text-slate-600 ${
               isCandidate
                 ? "justify-start"
                 : "justify-end"
@@ -424,7 +472,7 @@ function MessageBubble({
                 <>
                   <span>•</span>
 
-                  <FaCheck className="text-blue-500" />
+                  <FaCheck className="text-indigo-400" />
 
                   <span>Read</span>
                 </>
@@ -471,7 +519,7 @@ function ConversationPreview({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-5 py-4 dark:border-white/10 dark:bg-[#111318] sm:px-6">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-white/[0.025] px-5 py-4 backdrop-blur-xl sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative shrink-0">
             {candidateImage ? (
@@ -481,23 +529,23 @@ function ConversationPreview({
                 className="h-11 w-11 rounded-2xl object-cover"
               />
             ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
                 {getInitials(
                   candidateName,
                 )}
               </div>
             )}
 
-            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 dark:border-[#111318]" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-emerald-500" />
           </div>
 
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-bold text-gray-900 dark:text-white sm:text-base">
+            <h2 className="truncate text-sm font-bold text-white sm:text-base">
               {candidateName}
             </h2>
 
-            <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <FaBriefcase className="shrink-0 text-blue-500" />
+            <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-slate-500">
+              <FaBriefcase className="shrink-0 text-indigo-400" />
 
               <span className="truncate">
                 {jobTitle}
@@ -515,7 +563,7 @@ function ConversationPreview({
         {applicationId && (
           <Link
             href={`/recruiter/applications/${applicationId}`}
-            className="group hidden shrink-0 items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-xs font-semibold text-gray-700 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex dark:border-white/10 dark:text-gray-200 dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
+            className="group hidden shrink-0 items-center gap-2 rounded-xl border border-white/10 px-3.5 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-indigo-400/30 hover:bg-indigo-500/10 hover:text-indigo-300 sm:inline-flex"
           >
             View application
 
@@ -525,7 +573,7 @@ function ConversationPreview({
       </div>
 
       {/* Messages */}
-      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/80 px-4 py-6 dark:bg-[#0c0d10] sm:px-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-slate-950/40 px-4 py-6 sm:px-6">
         {loading ? (
           <div className="mx-auto max-w-3xl space-y-5">
             {Array.from({
@@ -542,8 +590,8 @@ function ConversationPreview({
                 <div
                   className={`h-16 animate-pulse rounded-2xl ${
                     index % 2 === 0
-                      ? "w-56 bg-white dark:bg-white/5"
-                      : "w-64 bg-blue-100 dark:bg-blue-500/10"
+                      ? "w-56 bg-white/5"
+                      : "w-64 bg-indigo-500/10"
                   }`}
                 />
               </div>
@@ -552,15 +600,15 @@ function ConversationPreview({
         ) : messages.length === 0 ? (
           <div className="flex h-full min-h-[350px] items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-blue-500 shadow-sm dark:bg-white/[0.04]">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-indigo-300 shadow-[0_0_60px_rgba(99,102,241,0.08)]">
                 <FaEnvelope className="text-2xl" />
               </div>
 
-              <h3 className="mt-4 text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="mt-4 text-base font-bold text-white">
                 No messages yet
               </h3>
 
-              <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-gray-500 dark:text-gray-400">
+              <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">
                 There are no messages in this
                 conversation yet.
               </p>
@@ -568,7 +616,7 @@ function ConversationPreview({
               {applicationId && (
                 <Link
                   href={`/recruiter/applications/${applicationId}`}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-blue-700"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
                 >
                   Open application
 
@@ -582,8 +630,17 @@ function ConversationPreview({
             <AnimatePresence initial={false}>
               {messages.map(
                 (message, index) => {
+                  /*
+                   * IMPORTANT:
+                   * candidateId = candidate's user id.
+                   *
+                   * If senderId is the candidate's id,
+                   * message belongs to candidate.
+                   *
+                   * Otherwise it belongs to recruiter.
+                   */
                   const isCandidate =
-                    message.senderId !==
+                    message.senderId ===
                     candidateId;
 
                   return (
@@ -610,9 +667,9 @@ function ConversationPreview({
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#111318] sm:px-6">
+      <div className="shrink-0 border-t border-white/10 bg-black/10 px-4 py-3 backdrop-blur-xl sm:px-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs text-slate-600">
             <FaUsers />
 
             <span>
@@ -623,7 +680,7 @@ function ConversationPreview({
           {applicationId && (
             <Link
               href={`/recruiter/applications/${applicationId}`}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              className="text-xs font-semibold text-indigo-400 transition hover:text-indigo-300"
             >
               Application
             </Link>
@@ -652,22 +709,22 @@ function EmptyState() {
         }}
         className="max-w-md text-center"
       >
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-indigo-400/10 bg-indigo-500/10 text-indigo-300 shadow-[0_0_80px_rgba(99,102,241,0.08)]">
           <FaMessage className="text-3xl" />
         </div>
 
-        <h2 className="mt-6 text-xl font-bold text-gray-900 dark:text-white">
+        <h2 className="mt-6 text-xl font-bold text-white">
           No conversation selected
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-sm leading-6 text-slate-500">
           Select a candidate conversation from
           the left panel to view your messages.
         </p>
 
         <Link
           href="/recruiter/dashboard"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-blue-600 dark:bg-white dark:text-gray-900 dark:hover:bg-blue-500 dark:hover:text-white"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-slate-200"
         >
           <FaArrowLeft />
 
@@ -774,6 +831,12 @@ export default function RecruiterMessagesPage() {
 
   /* =======================================================
      Load Messages
+     
+     IMPORTANT:
+     Uses the SAME endpoint as candidate:
+     
+     GET
+     /conversations/applications/:applicationId/messages
   ======================================================= */
 
   const loadMessages =
@@ -800,7 +863,7 @@ export default function RecruiterMessagesPage() {
           setMessagesError(null);
 
           const data =
-            await recruiterMessageApi.getMessages(
+            await getApplicationMessages(
               applicationId,
             );
 
@@ -830,9 +893,10 @@ export default function RecruiterMessagesPage() {
   ======================================================= */
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadConversations();
-    }, 0);
+    const timeoutId =
+      window.setTimeout(() => {
+        void loadConversations();
+      }, 0);
 
     return () => {
       window.clearTimeout(timeoutId);
@@ -848,9 +912,12 @@ export default function RecruiterMessagesPage() {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
-      void loadMessages(selectedConversation);
-    }, 0);
+    const timeoutId =
+      window.setTimeout(() => {
+        void loadMessages(
+          selectedConversation,
+        );
+      }, 0);
 
     return () => {
       window.clearTimeout(timeoutId);
@@ -925,8 +992,19 @@ export default function RecruiterMessagesPage() {
 
   if (!loading && error) {
     return (
-      <main className="min-h-screen bg-gray-50 dark:bg-[#08090b]">
-        <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4">
+      <main className="relative min-h-screen overflow-hidden bg-slate-950">
+        {/* Background */}
+        <div className="pointer-events-none fixed inset-0 z-0 opacity-40">
+          <ParticleWave />
+        </div>
+
+        <div className="pointer-events-none fixed inset-0 z-0 bg-slate-950/75" />
+
+        <div className="pointer-events-none fixed -left-40 -top-40 z-0 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+        <div className="pointer-events-none fixed -right-40 top-1/3 z-0 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4">
           <motion.div
             initial={{
               opacity: 0,
@@ -936,17 +1014,17 @@ export default function RecruiterMessagesPage() {
               opacity: 1,
               y: 0,
             }}
-            className="w-full max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center shadow-xl dark:border-red-500/20 dark:bg-[#111318]"
+            className="w-full max-w-lg rounded-3xl border border-red-400/20 bg-white/[0.06] p-8 text-center shadow-xl backdrop-blur-2xl"
           >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
               <FaXmark className="text-2xl" />
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-5 text-xl font-bold text-white">
               Unable to load messages
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               {error}
             </p>
 
@@ -955,7 +1033,7 @@ export default function RecruiterMessagesPage() {
               onClick={() =>
                 void loadConversations()
               }
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 dark:bg-white dark:text-gray-900"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
             >
               <FaRotate />
 
@@ -972,9 +1050,36 @@ export default function RecruiterMessagesPage() {
   ======================================================= */
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-[#08090b]">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+    <main className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
+      {/* =====================================================
+          PARTICLE WAVE BACKGROUND
+      ===================================================== */}
 
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-40">
+        <ParticleWave />
+      </div>
+
+      {/* =====================================================
+          DARK OVERLAY
+      ===================================================== */}
+
+      <div className="pointer-events-none fixed inset-0 z-0 bg-slate-950/70" />
+
+      {/* =====================================================
+          SOFT GLOWS
+      ===================================================== */}
+
+      <div className="pointer-events-none fixed left-[-10%] top-[-10%] z-0 h-[400px] w-[400px] rounded-full bg-indigo-600/15 blur-[120px]" />
+
+      <div className="pointer-events-none fixed bottom-[-10%] right-[-10%] z-0 h-[450px] w-[450px] rounded-full bg-purple-600/15 blur-[140px]" />
+
+      <div className="pointer-events-none fixed right-[30%] top-[20%] z-0 h-[300px] w-[300px] rounded-full bg-blue-600/5 blur-[120px]" />
+
+      {/* =====================================================
+          MAIN CONTAINER
+      ===================================================== */}
+
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         {/* =================================================
             Page Header
         ================================================= */}
@@ -991,7 +1096,7 @@ export default function RecruiterMessagesPage() {
           transition={{
             duration: 0.5,
           }}
-          className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#111318] sm:p-7"
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] p-6 shadow-2xl backdrop-blur-2xl sm:p-7"
         >
           <motion.div
             animate={{
@@ -1003,7 +1108,7 @@ export default function RecruiterMessagesPage() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-indigo-600/10 blur-3xl"
           />
 
           <motion.div
@@ -1016,22 +1121,22 @@ export default function RecruiterMessagesPage() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl"
+            className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-600/10 blur-3xl"
           />
 
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300">
                 <FaMessage />
 
                 Recruiter Communication
               </div>
 
-              <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Messages
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400 sm:text-base">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
                 Manage candidate conversations,
                 review messages, and continue
                 communication from one place.
@@ -1039,20 +1144,20 @@ export default function RecruiterMessagesPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03] sm:block">
+              <div className="hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:block">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
                     <FaUsers />
                   </div>
 
                   <div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    <p className="text-lg font-bold text-white">
                       {
                         conversations.length
                       }
                     </p>
 
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       Conversations
                     </p>
                   </div>
@@ -1072,7 +1177,7 @@ export default function RecruiterMessagesPage() {
                 }
                 disabled={loading}
                 aria-label="Refresh conversations"
-                className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-300"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 shadow-sm transition hover:border-indigo-400/30 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:opacity-50"
               >
                 <FaRotate
                   className={
@@ -1103,27 +1208,27 @@ export default function RecruiterMessagesPage() {
             delay: 0.15,
             duration: 0.5,
           }}
-          className="relative mt-6 flex min-h-[650px] flex-1 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#111318] lg:min-h-[calc(100vh-280px)]"
+          className="relative mt-6 flex min-h-[650px] flex-1 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/50 shadow-2xl backdrop-blur-2xl lg:min-h-[calc(100vh-280px)]"
         >
           {/* ===============================================
               Conversations Sidebar
           =============================================== */}
 
           <aside
-            className={`flex w-full shrink-0 flex-col border-r border-gray-200 dark:border-white/10 lg:w-[370px] ${
+            className={`flex w-full shrink-0 flex-col border-r border-white/10 ${
               mobileConversationOpen
                 ? "hidden lg:flex"
                 : "flex"
-            }`}
+            } lg:w-[370px]`}
           >
-            <div className="shrink-0 border-b border-gray-200 p-4 dark:border-white/10 sm:p-5">
+            <div className="shrink-0 border-b border-white/10 p-4 sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-base font-bold text-white">
                     Conversations
                   </h2>
 
-                  <p className="mt-0.5 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {
                       conversations.length
                     }{" "}
@@ -1131,14 +1236,14 @@ export default function RecruiterMessagesPage() {
                   </p>
                 </div>
 
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-300">
                   <FaEnvelope />
                 </div>
               </div>
 
               {/* Search */}
               <div className="relative mt-4">
-                <FaMagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+                <FaMagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-600" />
 
                 <input
                   type="text"
@@ -1149,7 +1254,7 @@ export default function RecruiterMessagesPage() {
                     )
                   }
                   placeholder="Search conversations..."
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-blue-500/40 dark:focus:bg-white/[0.04]"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-indigo-400/40 focus:bg-white/[0.05] focus:ring-4 focus:ring-indigo-500/10"
                 />
               </div>
             </div>
@@ -1162,17 +1267,17 @@ export default function RecruiterMessagesPage() {
                 0 ? (
                 <div className="flex min-h-[350px] items-center justify-center p-6 text-center">
                   <div>
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-slate-500">
                       <FaMessage />
                     </div>
 
-                    <h3 className="mt-4 text-sm font-bold text-gray-900 dark:text-white">
+                    <h3 className="mt-4 text-sm font-bold text-white">
                       {search
                         ? "No matches found"
                         : "No conversations"}
                     </h3>
 
-                    <p className="mt-1 text-xs leading-5 text-gray-400">
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
                       {search
                         ? "Try another candidate or job name."
                         : "Candidate conversations will appear here."}
@@ -1184,7 +1289,7 @@ export default function RecruiterMessagesPage() {
                         onClick={() =>
                           setSearch("")
                         }
-                        className="mt-4 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                        className="mt-4 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
                       >
                         Clear search
                       </button>
@@ -1241,7 +1346,7 @@ export default function RecruiterMessagesPage() {
             {selectedConversation ? (
               <div className="relative flex min-h-0 w-full flex-col">
                 {/* Mobile back */}
-                <div className="flex shrink-0 items-center border-b border-gray-200 px-4 py-2 dark:border-white/10 lg:hidden">
+                <div className="flex shrink-0 items-center border-b border-white/10 px-4 py-2 lg:hidden">
                   <button
                     type="button"
                     onClick={() =>
@@ -1249,7 +1354,7 @@ export default function RecruiterMessagesPage() {
                         false,
                       )
                     }
-                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"
                   >
                     <FaArrowLeft />
 
@@ -1279,7 +1384,7 @@ export default function RecruiterMessagesPage() {
                         opacity: 1,
                         y: 0,
                       }}
-                      className="flex items-center gap-3 rounded-xl border border-red-200 bg-white px-4 py-3 text-xs font-medium text-red-600 shadow-xl dark:border-red-500/20 dark:bg-[#15171c] dark:text-red-400"
+                      className="flex items-center gap-3 rounded-xl border border-red-400/20 bg-slate-900/95 px-4 py-3 text-xs font-medium text-red-400 shadow-xl backdrop-blur-xl"
                     >
                       <FaXmark />
 
@@ -1313,3 +1418,4 @@ export default function RecruiterMessagesPage() {
     </main>
   );
 }
+

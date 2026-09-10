@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -39,9 +38,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import ParticleWave from "../ui/particle-wave";
-
-
-
 
 // ============================================================
 // TYPES
@@ -112,7 +108,6 @@ interface InterviewResponse {
 }
 
 type TabType = "upcoming" | "completed" | "cancelled";
-
 
 // ============================================================
 // HELPERS
@@ -237,13 +232,9 @@ function getCountdownParts(date: string) {
 
   const difference = Math.max(target - now, 0);
 
-  const totalSeconds = Math.floor(
-    difference / 1000
-  );
+  const totalSeconds = Math.floor(difference / 1000);
 
-  const days = Math.floor(
-    totalSeconds / 86400
-  );
+  const days = Math.floor(totalSeconds / 86400);
 
   const hours = Math.floor(
     (totalSeconds % 86400) / 3600
@@ -264,7 +255,6 @@ function getCountdownParts(date: string) {
   };
 }
 
-
 // ============================================================
 // COUNTDOWN
 // ============================================================
@@ -276,30 +266,24 @@ function InterviewCountdown({
 }) {
   const [mounted, setMounted] = useState(false);
 
-  const [countdown, setCountdown] =
-    useState({
-      days: 0,
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-      total: 0,
-    });
+  const [countdown, setCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    total: 0,
+  });
 
   useEffect(() => {
     setMounted(true);
 
     const update = () => {
-      setCountdown(
-        getCountdownParts(scheduledAt)
-      );
+      setCountdown(getCountdownParts(scheduledAt));
     };
 
     update();
 
-    const interval = window.setInterval(
-      update,
-      1000
-    );
+    const interval = window.setInterval(update, 1000);
 
     return () => {
       window.clearInterval(interval);
@@ -309,20 +293,18 @@ function InterviewCountdown({
   if (!mounted) {
     return (
       <div className="grid grid-cols-4 gap-2">
-        {["Days", "Hours", "Min", "Sec"].map(
-          (label) => (
-            <div
-              key={label}
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"
-            >
-              <div className="h-6 animate-pulse rounded bg-white/10" />
+        {["Days", "Hours", "Min", "Sec"].map((label) => (
+          <div
+            key={label}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"
+          >
+            <div className="h-6 animate-pulse rounded bg-white/10" />
 
-              <p className="mt-1 text-[9px] uppercase tracking-widest text-white/40">
-                {label}
-              </p>
-            </div>
-          )
-        )}
+            <p className="mt-1 text-[9px] uppercase tracking-widest text-white/40">
+              {label}
+            </p>
+          </div>
+        ))}
       </div>
     );
   }
@@ -385,7 +367,6 @@ function CountdownUnit({
   );
 }
 
-
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
@@ -394,8 +375,7 @@ export default function CandidateInterviews() {
   const [data, setData] =
     useState<InterviewResponse | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -415,9 +395,7 @@ export default function CandidateInterviews() {
   const [rescheduleDate, setRescheduleDate] =
     useState("");
 
-  const [mounted, setMounted] =
-    useState(false);
-
+  const [mounted, setMounted] = useState(false);
 
   // ==========================================================
   // MOUNT
@@ -427,103 +405,84 @@ export default function CandidateInterviews() {
     setMounted(true);
   }, []);
 
-
   // ==========================================================
   // FETCH
   // ==========================================================
 
-  const fetchInterviews =
-    useCallback(async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchInterviews = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response =
-          await fetch(
-            `${API_URL}/api/v1/interviews/candidate`,
-            {
-              method: "GET",
-              credentials: "include",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              cache: "no-store",
-            }
-          );
-
-        const result =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            result?.message ||
-              "Failed to load interviews"
-          );
+      const response = await fetch(
+        `${API_URL}/api/v1/interviews/candidate`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
         }
+      );
 
-        setData(result.data);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong"
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ||
+            "Failed to load interviews"
         );
-      } finally {
-        setLoading(false);
       }
-    }, []);
 
+      setData(result.data);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchInterviews();
   }, [fetchInterviews]);
 
-
   // ==========================================================
   // DERIVED DATA
   // ==========================================================
 
-  const nextInterview =
-    useMemo(() => {
-      if (!data?.upcoming?.length) {
-        return null;
-      }
+  const nextInterview = useMemo(() => {
+    if (!data?.upcoming?.length) {
+      return null;
+    }
 
-      return [...data.upcoming].sort(
-        (a, b) =>
-          new Date(
-            a.scheduledAt
-          ).getTime() -
-          new Date(
-            b.scheduledAt
-          ).getTime()
-      )[0];
-    }, [data]);
+    return [...data.upcoming].sort(
+      (a, b) =>
+        new Date(a.scheduledAt).getTime() -
+        new Date(b.scheduledAt).getTime()
+    )[0];
+  }, [data]);
 
+  const visibleInterviews = useMemo(() => {
+    if (!data) return [];
 
-  const visibleInterviews =
-    useMemo(() => {
-      if (!data) return [];
+    if (activeTab === "completed") {
+      return data.completed;
+    }
 
-      if (activeTab === "completed") {
-        return data.completed;
-      }
+    if (activeTab === "cancelled") {
+      return data.cancelled;
+    }
 
-      if (activeTab === "cancelled") {
-        return data.cancelled;
-      }
-
-      return data.upcoming.filter(
-        (item) =>
-          item.id !== nextInterview?.id
-      );
-    }, [
-      activeTab,
-      data,
-      nextInterview,
-    ]);
-
+    return data.upcoming.filter(
+      (item) =>
+        item.id !== nextInterview?.id
+    );
+  }, [activeTab, data, nextInterview]);
 
   // ==========================================================
   // CONFIRM
@@ -533,25 +492,20 @@ export default function CandidateInterviews() {
     interviewId: string
   ) => {
     try {
-      setActionLoading(
-        `confirm-${interviewId}`
+      setActionLoading(`confirm-${interviewId}`);
+
+      const response = await fetch(
+        `${API_URL}/api/v1/interviews/candidate/${interviewId}/confirm`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
-      const response =
-        await fetch(
-          `${API_URL}/api/v1/interviews/candidate/${interviewId}/confirm`,
-          {
-            method: "PATCH",
-            credentials: "include",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-          }
-        );
-
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -572,7 +526,6 @@ export default function CandidateInterviews() {
     }
   };
 
-
   // ==========================================================
   // CANCEL
   // ==========================================================
@@ -580,33 +533,27 @@ export default function CandidateInterviews() {
   const handleCancel = async (
     interviewId: string
   ) => {
-    const confirmed =
-      window.confirm(
-        "Are you sure you want to cancel this interview?"
-      );
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this interview?"
+    );
 
     if (!confirmed) return;
 
     try {
-      setActionLoading(
-        `cancel-${interviewId}`
+      setActionLoading(`cancel-${interviewId}`);
+
+      const response = await fetch(
+        `${API_URL}/api/v1/interviews/candidate/${interviewId}/cancel`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
-      const response =
-        await fetch(
-          `${API_URL}/api/v1/interviews/candidate/${interviewId}/cancel`,
-          {
-            method: "PATCH",
-            credentials: "include",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-          }
-        );
-
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -629,16 +576,12 @@ export default function CandidateInterviews() {
     }
   };
 
-
   // ==========================================================
   // RESCHEDULE
   // ==========================================================
 
   const handleReschedule = async () => {
-    if (
-      !showReschedule ||
-      !rescheduleDate
-    ) {
+    if (!showReschedule || !rescheduleDate) {
       return;
     }
 
@@ -647,27 +590,23 @@ export default function CandidateInterviews() {
         `reschedule-${showReschedule.id}`
       );
 
-      const response =
-        await fetch(
-          `${API_URL}/api/v1/interviews/candidate/${showReschedule.id}/reschedule`,
-          {
-            method: "PATCH",
-            credentials: "include",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              scheduledAt:
-                new Date(
-                  rescheduleDate
-                ).toISOString(),
-            }),
-          }
-        );
+      const response = await fetch(
+        `${API_URL}/api/v1/interviews/candidate/${showReschedule.id}/reschedule`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            scheduledAt: new Date(
+              rescheduleDate
+            ).toISOString(),
+          }),
+        }
+      );
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -691,16 +630,26 @@ export default function CandidateInterviews() {
     }
   };
 
-
   // ==========================================================
   // LOADING
   // ==========================================================
 
   if (loading) {
     return (
-      <div className="relative min-h-[calc(100vh-64px)] overflow-hidden bg-background">
-        <div className="pointer-events-none absolute inset-0 opacity-30">
-          <ParticleWave />
+      <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 text-white">
+        {/* Matching Background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+          <div className="absolute right-[-10rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.08),transparent_35%)]" />
+
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/70 to-slate-950" />
+
+          <div className="absolute inset-0 opacity-[0.12]">
+            <ParticleWave />
+          </div>
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -710,29 +659,39 @@ export default function CandidateInterviews() {
     );
   }
 
-
   // ==========================================================
   // ERROR
   // ==========================================================
 
   if (error) {
     return (
-      <div className="relative min-h-[calc(100vh-64px)] overflow-hidden bg-background">
-        <div className="pointer-events-none absolute inset-0 opacity-20">
-          <ParticleWave />
+      <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 text-white">
+        {/* Matching Background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+          <div className="absolute right-[-10rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.08),transparent_35%)]" />
+
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/75 to-slate-950" />
+
+          <div className="absolute inset-0 opacity-[0.08]">
+            <ParticleWave />
+          </div>
         </div>
 
         <div className="relative z-10 flex min-h-[70vh] items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-3xl border border-destructive/20 bg-background/80 p-8 text-center shadow-2xl backdrop-blur-xl">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10">
-              <AlertCircle className="h-7 w-7 text-destructive" />
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-8 text-center shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
+              <AlertCircle className="h-7 w-7 text-red-400" />
             </div>
 
             <h2 className="text-xl font-bold">
               Unable to load interviews
             </h2>
 
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-slate-400">
               {error}
             </p>
 
@@ -749,27 +708,36 @@ export default function CandidateInterviews() {
     );
   }
 
-
   // ==========================================================
   // PAGE
   // ==========================================================
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] overflow-hidden bg-background">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 text-white">
+
       {/* ======================================================
-          PARTICLE WAVE BACKGROUND
+          MATCHING BACKGROUND
       ====================================================== */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.18]">
+
+        {/* Left Indigo Glow */}
+        <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-indigo-600/20 blur-3xl" />
+
+        {/* Right Purple Glow */}
+        <div className="absolute right-[-10rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-purple-600/10 blur-3xl" />
+
+        {/* Top Radial Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.08),transparent_35%)]" />
+
+        {/* Particle Wave */}
+        <div className="absolute inset-0 opacity-[0.12]">
           <ParticleWave />
         </div>
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(120,80,255,0.12),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(0,180,255,0.08),transparent_35%)]" />
-
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/75 to-background" />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/75 to-slate-950" />
       </div>
-
 
       {/* ======================================================
           CONTENT
@@ -789,14 +757,13 @@ export default function CandidateInterviews() {
           }`}
         >
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                  <CalendarClock className="h-4 w-4 text-primary" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10">
+                  <CalendarClock className="h-4 w-4 text-indigo-400" />
                 </div>
 
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300">
                   Interview Center
                 </span>
               </div>
@@ -805,14 +772,14 @@ export default function CandidateInterviews() {
                 Your interviews
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
                 Stay organized, prepare confidently,
                 and never miss your next opportunity.
               </p>
             </div>
 
             <Button
-              className="group gap-2 rounded-xl shadow-lg shadow-primary/10"
+              className="group gap-2 rounded-xl shadow-lg shadow-indigo-500/10"
               onClick={() => {
                 window.location.href =
                   "/candidate/practices";
@@ -826,7 +793,6 @@ export default function CandidateInterviews() {
             </Button>
           </div>
         </section>
-
 
         {/* ====================================================
             STATS
@@ -842,40 +808,31 @@ export default function CandidateInterviews() {
           <StatCard
             icon={CalendarDays}
             label="Upcoming"
-            value={
-              data?.stats.upcoming ?? 0
-            }
+            value={data?.stats.upcoming ?? 0}
             description="Scheduled"
           />
 
           <StatCard
             icon={CheckCircle2}
             label="Completed"
-            value={
-              data?.stats.completed ?? 0
-            }
+            value={data?.stats.completed ?? 0}
             description="Finished"
           />
 
           <StatCard
             icon={XCircle}
             label="Cancelled"
-            value={
-              data?.stats.cancelled ?? 0
-            }
+            value={data?.stats.cancelled ?? 0}
             description="Cancelled"
           />
 
           <StatCard
             icon={Target}
             label="Total"
-            value={
-              data?.stats.total ?? 0
-            }
+            value={data?.stats.total ?? 0}
             description="All interviews"
           />
         </section>
-
 
         {/* ====================================================
             NEXT INTERVIEW
@@ -885,7 +842,7 @@ export default function CandidateInterviews() {
           <section className="mb-8">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
+                <Zap className="h-4 w-4 text-indigo-400" />
 
                 <h2 className="text-sm font-bold">
                   Next interview
@@ -894,7 +851,7 @@ export default function CandidateInterviews() {
 
               <Badge
                 variant="outline"
-                className="border-primary/20 bg-primary/5 text-primary"
+                className="border-indigo-400/20 bg-indigo-400/5 text-indigo-300"
               >
                 {getStatusLabel(
                   nextInterview.status
@@ -902,10 +859,9 @@ export default function CandidateInterviews() {
               </Badge>
             </div>
 
-            <div className="group relative overflow-hidden rounded-3xl border border-primary/20 bg-card/70 shadow-2xl shadow-primary/5 backdrop-blur-xl">
+            <div className="group relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-white/[0.06] shadow-2xl shadow-indigo-950/20 backdrop-blur-xl">
 
-              {/* Glow */}
-              <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl transition-all duration-700 group-hover:bg-primary/15" />
+              <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl transition-all duration-700 group-hover:bg-indigo-500/15" />
 
               <div className="relative grid lg:grid-cols-[1.4fr_0.8fr]">
 
@@ -913,7 +869,7 @@ export default function CandidateInterviews() {
                 <div className="p-6 sm:p-8">
 
                   <div className="mb-6 flex flex-wrap items-center gap-2">
-                    <Badge className="rounded-lg bg-primary/10 text-primary hover:bg-primary/10">
+                    <Badge className="rounded-lg bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/10">
                       {getInterviewTypeLabel(
                         nextInterview.type
                       )}
@@ -922,34 +878,26 @@ export default function CandidateInterviews() {
                     {nextInterview.durationMinutes && (
                       <Badge
                         variant="outline"
-                        className="rounded-lg"
+                        className="rounded-lg border-white/10 bg-white/5 text-slate-300"
                       >
                         <Clock3 className="mr-1 h-3 w-3" />
 
-                        {
-                          nextInterview.durationMinutes
-                        }{" "}
+                        {nextInterview.durationMinutes}{" "}
                         min
                       </Badge>
                     )}
                   </div>
 
                   <h2 className="max-w-2xl text-2xl font-bold tracking-tight sm:text-3xl">
-                    {getJobTitle(
-                      nextInterview
-                    )}
+                    {getJobTitle(nextInterview)}
                   </h2>
 
-                  <p className="mt-2 text-base font-medium text-primary">
-                    {getCompanyName(
-                      nextInterview
-                    )}
+                  <p className="mt-2 text-base font-medium text-indigo-300">
+                    {getCompanyName(nextInterview)}
                   </p>
-
 
                   {/* DATE */}
                   <div className="mt-7 grid gap-3 sm:grid-cols-2">
-
                     <InfoItem
                       icon={CalendarDays}
                       label="Date"
@@ -968,8 +916,7 @@ export default function CandidateInterviews() {
 
                     <InfoItem
                       icon={
-                        nextInterview.type ===
-                        "VIDEO"
+                        nextInterview.type === "VIDEO"
                           ? Video
                           : MapPin
                       }
@@ -983,27 +930,24 @@ export default function CandidateInterviews() {
                       icon={Sparkles}
                       label="Interviewer"
                       value={
-                        nextInterview
-                          .scheduledBy
-                          ?.name ||
+                        nextInterview.scheduledBy?.name ||
                         "Hiring team"
                       }
                     />
                   </div>
 
-
                   {/* NOTES */}
                   {nextInterview.notes && (
-                    <div className="mt-6 rounded-2xl border border-border/60 bg-muted/30 p-4">
+                    <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                       <div className="flex gap-3">
-                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
 
                         <div>
                           <p className="text-xs font-semibold">
                             Interview notes
                           </p>
 
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          <p className="mt-1 text-sm leading-6 text-slate-400">
                             {nextInterview.notes}
                           </p>
                         </div>
@@ -1011,14 +955,13 @@ export default function CandidateInterviews() {
                     </div>
                   )}
 
-
                   {/* ACTIONS */}
                   <div className="mt-7 flex flex-wrap gap-2">
 
                     {nextInterview.meetingUrl && (
                       <Button
                         asChild
-                        className="gap-2 rounded-xl shadow-lg shadow-primary/10"
+                        className="gap-2 rounded-xl shadow-lg shadow-indigo-500/10"
                       >
                         <a
                           href={
@@ -1038,7 +981,7 @@ export default function CandidateInterviews() {
                       "SCHEDULED" && (
                       <Button
                         variant="outline"
-                        className="gap-2 rounded-xl"
+                        className="gap-2 rounded-xl border-white/10 bg-white/[0.03]"
                         disabled={
                           actionLoading ===
                           `confirm-${nextInterview.id}`
@@ -1062,7 +1005,7 @@ export default function CandidateInterviews() {
 
                     <Button
                       variant="ghost"
-                      className="gap-2 rounded-xl"
+                      className="gap-2 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white"
                       onClick={() =>
                         setShowDetails(
                           nextInterview
@@ -1075,14 +1018,13 @@ export default function CandidateInterviews() {
                   </div>
                 </div>
 
-
                 {/* RIGHT COUNTDOWN */}
-                <div className="relative border-t border-border/60 bg-black/10 p-6 lg:border-l lg:border-t-0 sm:p-8">
+                <div className="relative border-t border-white/10 bg-black/10 p-6 lg:border-l lg:border-t-0 sm:p-8">
 
                   <div className="flex h-full flex-col justify-between">
 
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Countdown
                       </p>
 
@@ -1095,12 +1037,11 @@ export default function CandidateInterviews() {
                       </div>
                     </div>
 
-
-                    <div className="mt-8 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                    <div className="mt-8 rounded-2xl border border-indigo-400/10 bg-indigo-500/5 p-4">
 
                       <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                          <Brain className="h-4 w-4 text-primary" />
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10">
+                          <Brain className="h-4 w-4 text-indigo-300" />
                         </div>
 
                         <div>
@@ -1108,7 +1049,7 @@ export default function CandidateInterviews() {
                             Prepare with AI
                           </p>
 
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
                             Practice questions tailored
                             to this role and your resume.
                           </p>
@@ -1119,7 +1060,7 @@ export default function CandidateInterviews() {
                               (window.location.href =
                                 "/candidate/practices")
                             }
-                            className="mt-3 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+                            className="mt-3 text-xs font-semibold text-indigo-300 transition-colors hover:text-indigo-200"
                           >
                             Start practice →
                           </button>
@@ -1135,7 +1076,6 @@ export default function CandidateInterviews() {
           </section>
         )}
 
-
         {/* ====================================================
             PREPARATION + CHECKLIST
         ==================================================== */}
@@ -1147,7 +1087,6 @@ export default function CandidateInterviews() {
           <PreparationChecklist />
 
         </section>
-
 
         {/* ====================================================
             INTERVIEW LIST
@@ -1162,13 +1101,12 @@ export default function CandidateInterviews() {
                 Interview history
               </h2>
 
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-slate-500">
                 Track your upcoming and previous interviews.
               </p>
             </div>
 
-
-            <div className="flex rounded-xl border border-border/60 bg-muted/30 p-1">
+            <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
 
               <TabButton
                 active={
@@ -1207,7 +1145,6 @@ export default function CandidateInterviews() {
 
           </div>
 
-
           {visibleInterviews.length > 0 ? (
             <div className="space-y-3">
               {visibleInterviews.map(
@@ -1233,7 +1170,6 @@ export default function CandidateInterviews() {
         </section>
 
       </main>
-
 
       {/* ======================================================
           DETAILS DIALOG
@@ -1266,16 +1202,13 @@ export default function CandidateInterviews() {
         />
       )}
 
-
       {/* ======================================================
           RESCHEDULE MODAL
       ====================================================== */}
 
       {showReschedule && (
         <RescheduleModal
-          interview={
-            showReschedule
-          }
+          interview={showReschedule}
           value={rescheduleDate}
           loading={
             actionLoading ===
@@ -1285,22 +1218,16 @@ export default function CandidateInterviews() {
             setRescheduleDate
           }
           onClose={() => {
-            setShowReschedule(
-              null
-            );
-
+            setShowReschedule(null);
             setRescheduleDate("");
           }}
-          onSubmit={
-            handleReschedule
-          }
+          onSubmit={handleReschedule}
         />
       )}
 
     </div>
   );
 }
-
 
 // ============================================================
 // STAT CARD
@@ -1318,28 +1245,31 @@ function StatCard({
   description: string;
 }) {
   return (
-    <div className="group rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5">
+    <div className="group rounded-2xl border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-400/20 hover:bg-white/[0.07] hover:shadow-lg hover:shadow-indigo-500/5">
+
       <div className="flex items-center justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-          <Icon className="h-4 w-4 text-primary" />
+
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10">
+          <Icon className="h-4 w-4 text-indigo-300" />
         </div>
 
         <span className="text-2xl font-bold tabular-nums">
           {value}
         </span>
+
       </div>
 
       <p className="mt-3 text-xs font-semibold">
         {label}
       </p>
 
-      <p className="mt-0.5 text-[11px] text-muted-foreground">
+      <p className="mt-0.5 text-[11px] text-slate-500">
         {description}
       </p>
+
     </div>
   );
 }
-
 
 // ============================================================
 // INFO ITEM
@@ -1355,24 +1285,27 @@ function InfoItem({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-border/50 bg-muted/20 p-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-        <Icon className="h-4 w-4 text-primary" />
+    <div className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
+        <Icon className="h-4 w-4 text-indigo-300" />
       </div>
 
       <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
           {label}
         </p>
 
-        <p className="mt-0.5 truncate text-sm font-medium">
+        <p className="mt-0.5 truncate text-sm font-medium text-slate-200">
           {value}
         </p>
+
       </div>
+
     </div>
   );
 }
-
 
 // ============================================================
 // PREPARATION CARD
@@ -1382,9 +1315,9 @@ function PreparationCard() {
   const preparationScore = 82;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-xl">
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl">
 
-      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
 
       <div className="relative">
 
@@ -1392,8 +1325,8 @@ function PreparationCard() {
 
           <div className="flex gap-3">
 
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-              <Brain className="h-5 w-5 text-primary" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/10">
+              <Brain className="h-5 w-5 text-indigo-300" />
             </div>
 
             <div>
@@ -1401,7 +1334,7 @@ function PreparationCard() {
                 AI interview preparation
               </h3>
 
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              <p className="mt-1 text-xs leading-5 text-slate-500">
                 Personalized preparation based on your
                 role and skills.
               </p>
@@ -1415,17 +1348,18 @@ function PreparationCard() {
 
         </div>
 
-
         <div className="mt-6">
 
           <div className="mb-2 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">
+
+            <span className="text-slate-500">
               Preparation score
             </span>
 
             <span className="font-bold">
               {preparationScore}%
             </span>
+
           </div>
 
           <Progress
@@ -1434,7 +1368,6 @@ function PreparationCard() {
           />
 
         </div>
-
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
 
@@ -1460,7 +1393,6 @@ function PreparationCard() {
 
         </div>
 
-
         <Button
           className="mt-6 w-full gap-2 rounded-xl"
           onClick={() =>
@@ -1479,7 +1411,6 @@ function PreparationCard() {
     </div>
   );
 }
-
 
 function PreparationSkill({
   label,
@@ -1519,7 +1450,7 @@ function PreparationSkill({
   const Icon = item.icon;
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
 
       <span className="text-xs font-medium">
         {label}
@@ -1536,7 +1467,6 @@ function PreparationSkill({
     </div>
   );
 }
-
 
 // ============================================================
 // CHECKLIST
@@ -1571,7 +1501,7 @@ function PreparationChecklist() {
   ];
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-xl">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl">
 
       <div className="flex items-center gap-3">
 
@@ -1584,13 +1514,12 @@ function PreparationChecklist() {
             Before your interview
           </h3>
 
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-slate-500">
             Quick preparation checklist
           </p>
         </div>
 
       </div>
-
 
       <div className="mt-5 space-y-2">
 
@@ -1599,11 +1528,12 @@ function PreparationChecklist() {
             key={item.label}
             className="flex items-center gap-3 rounded-xl px-2 py-2"
           >
+
             <div
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
                 item.done
                   ? "bg-emerald-500/15 text-emerald-400"
-                  : "border border-border text-transparent"
+                  : "border border-white/10 text-transparent"
               }`}
             >
               <Check className="h-3 w-3" />
@@ -1612,12 +1542,13 @@ function PreparationChecklist() {
             <span
               className={`text-xs ${
                 item.done
-                  ? "text-muted-foreground line-through"
-                  : "font-medium"
+                  ? "text-slate-500 line-through"
+                  : "font-medium text-slate-300"
               }`}
             >
               {item.label}
             </span>
+
           </div>
         ))}
 
@@ -1626,7 +1557,6 @@ function PreparationChecklist() {
     </div>
   );
 }
-
 
 // ============================================================
 // TAB BUTTON
@@ -1647,15 +1577,14 @@ function TabButton({
       onClick={onClick}
       className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
         active
-          ? "bg-background text-foreground shadow-sm"
-          : "text-muted-foreground hover:text-foreground"
+          ? "bg-white/10 text-white shadow-sm"
+          : "text-slate-500 hover:text-white"
       }`}
     >
       {children}
     </button>
   );
 }
-
 
 // ============================================================
 // INTERVIEW LIST ITEM
@@ -1668,19 +1597,18 @@ function InterviewListItem({
   interview: Interview;
   onView: () => void;
 }) {
-  const date =
-    new Date(interview.scheduledAt);
+  const date = new Date(interview.scheduledAt);
 
   return (
-    <div className="group rounded-2xl border border-border/60 bg-card/50 p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card/70 hover:shadow-lg">
+    <div className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-400/20 hover:bg-white/[0.06] hover:shadow-lg">
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
 
         {/* DATE */}
 
-        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary/5">
+        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-indigo-500/5">
 
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-300">
             {new Intl.DateTimeFormat(
               "en-US",
               {
@@ -1694,7 +1622,6 @@ function InterviewListItem({
           </span>
 
         </div>
-
 
         {/* MAIN */}
 
@@ -1719,11 +1646,11 @@ function InterviewListItem({
 
           </div>
 
-          <p className="mt-1 text-xs font-medium text-primary">
+          <p className="mt-1 text-xs font-medium text-indigo-300">
             {getCompanyName(interview)}
           </p>
 
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
 
             <span className="flex items-center gap-1">
               <Clock3 className="h-3 w-3" />
@@ -1755,12 +1682,11 @@ function InterviewListItem({
 
         </div>
 
-
         {/* ACTION */}
 
         <Button
           variant="ghost"
-          className="shrink-0 gap-1 rounded-xl text-xs"
+          className="shrink-0 gap-1 rounded-xl text-xs text-slate-300 hover:bg-white/5 hover:text-white"
           onClick={onView}
         >
           View details
@@ -1772,7 +1698,6 @@ function InterviewListItem({
     </div>
   );
 }
-
 
 // ============================================================
 // EMPTY STATE
@@ -1811,24 +1736,23 @@ function EmptyInterviewState({
   const Icon = item.icon;
 
   return (
-    <div className="rounded-3xl border border-dashed border-border/70 bg-card/30 px-6 py-14 text-center">
+    <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] px-6 py-14 text-center">
 
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-        <Icon className="h-6 w-6 text-muted-foreground" />
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
+        <Icon className="h-6 w-6 text-slate-500" />
       </div>
 
       <h3 className="mt-5 text-sm font-bold">
         {item.title}
       </h3>
 
-      <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">
+      <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500">
         {item.description}
       </p>
 
     </div>
   );
 }
-
 
 // ============================================================
 // DETAILS MODAL
@@ -1873,7 +1797,7 @@ function InterviewDetailsModal({
               {getJobTitle(interview)}
             </h2>
 
-            <p className="mt-1 text-sm font-medium text-primary">
+            <p className="mt-1 text-sm font-medium text-indigo-300">
               {getCompanyName(interview)}
             </p>
 
@@ -1882,16 +1806,14 @@ function InterviewDetailsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-white/5 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
 
         </div>
 
-
-        <Separator className="my-6" />
-
+        <Separator className="my-6 bg-white/10" />
 
         <div className="grid gap-3 sm:grid-cols-2">
 
@@ -1923,17 +1845,15 @@ function InterviewDetailsModal({
             icon={Sparkles}
             label="Interviewer"
             value={
-              interview.scheduledBy
-                ?.name ||
+              interview.scheduledBy?.name ||
               "Hiring team"
             }
           />
 
         </div>
 
-
         {interview.scheduledBy && (
-          <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
 
             <p className="text-xs font-semibold">
               Interviewer
@@ -1943,42 +1863,37 @@ function InterviewDetailsModal({
               {interview.scheduledBy.name}
             </p>
 
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-slate-500">
               {interview.scheduledBy.email}
             </p>
 
           </div>
         )}
 
-
         {interview.notes && (
-          <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
 
             <p className="text-xs font-semibold">
               Notes from recruiter
             </p>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               {interview.notes}
             </p>
 
           </div>
         )}
 
-
         <div className="mt-6 flex flex-wrap gap-2">
 
           {interview.meetingUrl &&
-            interview.status !==
-              "CANCELLED" && (
+            interview.status !== "CANCELLED" && (
               <Button
                 asChild
                 className="gap-2 rounded-xl"
               >
                 <a
-                  href={
-                    interview.meetingUrl
-                  }
+                  href={interview.meetingUrl}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -1989,13 +1904,11 @@ function InterviewDetailsModal({
               </Button>
             )}
 
-          {(interview.status ===
-            "SCHEDULED" ||
-            interview.status ===
-              "RESCHEDULED") && (
+          {(interview.status === "SCHEDULED" ||
+            interview.status === "RESCHEDULED") && (
             <Button
               variant="outline"
-              className="gap-2 rounded-xl"
+              className="gap-2 rounded-xl border-white/10 bg-white/[0.03]"
               disabled={
                 actionLoading ===
                 `confirm-${interview.id}`
@@ -2013,14 +1926,12 @@ function InterviewDetailsModal({
             </Button>
           )}
 
-          {interview.status !==
-            "COMPLETED" &&
-            interview.status !==
-              "CANCELLED" && (
+          {interview.status !== "COMPLETED" &&
+            interview.status !== "CANCELLED" && (
               <>
                 <Button
                   variant="outline"
-                  className="gap-2 rounded-xl"
+                  className="gap-2 rounded-xl border-white/10 bg-white/[0.03]"
                   onClick={onReschedule}
                 >
                   <RefreshCw className="h-4 w-4" />
@@ -2029,7 +1940,7 @@ function InterviewDetailsModal({
 
                 <Button
                   variant="ghost"
-                  className="gap-2 rounded-xl text-destructive hover:text-destructive"
+                  className="gap-2 rounded-xl text-red-400 hover:bg-red-500/5 hover:text-red-300"
                   disabled={
                     actionLoading ===
                     `cancel-${interview.id}`
@@ -2054,7 +1965,6 @@ function InterviewDetailsModal({
     </Modal>
   );
 }
-
 
 // ============================================================
 // RESCHEDULE MODAL
@@ -2083,15 +1993,15 @@ function RescheduleModal({
         <div className="flex items-start justify-between">
 
           <div>
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <CalendarClock className="h-5 w-5 text-primary" />
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
+              <CalendarClock className="h-5 w-5 text-indigo-300" />
             </div>
 
             <h2 className="text-xl font-bold">
               Reschedule interview
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-slate-500">
               Choose a new date and time for your interview.
             </p>
           </div>
@@ -2099,17 +2009,16 @@ function RescheduleModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-muted-foreground hover:bg-muted"
+            className="rounded-xl p-2 text-slate-500 hover:bg-white/5 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
 
         </div>
 
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
 
-        <div className="mt-6 rounded-2xl border border-border/60 bg-muted/20 p-4">
-
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-500">
             Current interview
           </p>
 
@@ -2117,7 +2026,7 @@ function RescheduleModal({
             {getJobTitle(interview)}
           </p>
 
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-slate-500">
             {formatInterviewDate(
               interview.scheduledAt
             )}{" "}
@@ -2128,7 +2037,6 @@ function RescheduleModal({
           </p>
 
         </div>
-
 
         <div className="mt-5">
 
@@ -2143,21 +2051,16 @@ function RescheduleModal({
             id="reschedule-date"
             type="datetime-local"
             value={value}
-            min={
-              new Date()
-                .toISOString()
-                .slice(0, 16)
-            }
+            min={new Date()
+              .toISOString()
+              .slice(0, 16)}
             onChange={(event) =>
-              onChange(
-                event.target.value
-              )
+              onChange(event.target.value)
             }
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
           />
 
         </div>
-
 
         <div className="mt-6 flex justify-end gap-2">
 
@@ -2171,9 +2074,7 @@ function RescheduleModal({
 
           <Button
             className="gap-2 rounded-xl"
-            disabled={
-              !value || loading
-            }
+            disabled={!value || loading}
             onClick={onSubmit}
           >
             {loading && (
@@ -2190,7 +2091,6 @@ function RescheduleModal({
     </Modal>
   );
 }
-
 
 // ============================================================
 // MODAL
@@ -2235,14 +2135,13 @@ function Modal({
         className="absolute inset-0 cursor-default"
       />
 
-      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-border/70 bg-background/95 shadow-2xl backdrop-blur-xl">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-xl">
         {children}
       </div>
 
     </div>
   );
 }
-
 
 // ============================================================
 // SKELETON
@@ -2252,38 +2151,33 @@ function InterviewSkeleton() {
   return (
     <div className="animate-pulse">
 
-      <div className="h-4 w-32 rounded bg-muted" />
+      <div className="h-4 w-32 rounded bg-white/10" />
 
-      <div className="mt-4 h-10 w-72 rounded bg-muted" />
+      <div className="mt-4 h-10 w-72 rounded bg-white/10" />
 
-      <div className="mt-3 h-5 w-96 max-w-full rounded bg-muted" />
-
+      <div className="mt-3 h-5 w-96 max-w-full rounded bg-white/10" />
 
       <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
 
-        {[1, 2, 3, 4].map(
-          (item) => (
-            <div
-              key={item}
-              className="h-28 rounded-2xl bg-muted"
-            />
-          )
-        )}
+        {[1, 2, 3, 4].map((item) => (
+          <div
+            key={item}
+            className="h-28 rounded-2xl bg-white/10"
+          />
+        ))}
 
       </div>
 
-
-      <div className="mt-8 h-[430px] rounded-3xl bg-muted" />
+      <div className="mt-8 h-[430px] rounded-3xl bg-white/10" />
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
 
-        <div className="h-72 rounded-3xl bg-muted" />
+        <div className="h-72 rounded-3xl bg-white/10" />
 
-        <div className="h-72 rounded-3xl bg-muted" />
+        <div className="h-72 rounded-3xl bg-white/10" />
 
       </div>
 
     </div>
   );
 }
-
